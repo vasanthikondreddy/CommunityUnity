@@ -4,6 +4,7 @@ const dotenv = require("dotenv");
 const cors = require("cors");
 const http = require("http"); 
 
+const authRoutes = require("./routes/authRoutes"); 
 const eventRoutes = require("./routes/eventRoutes");
 const volunteerRoutes = require("./routes/volunteerRoutes");
 const { init } = require("./socket"); 
@@ -15,6 +16,9 @@ const server = http.createServer(app);
 
 app.use(cors());
 app.use(express.json());
+
+
+app.use("/api/auth", authRoutes);
 
 app.use("/api/events", eventRoutes);
 app.use("/api/volunteers", volunteerRoutes);
