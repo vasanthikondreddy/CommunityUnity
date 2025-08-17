@@ -1,3 +1,4 @@
+
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
@@ -7,8 +8,9 @@ const userSchema = new mongoose.Schema({
   phone: String,
   location: String,
   interests: String,
-  role: { type: String, default: 'member' },
-  availability: { type: String, default: 'flexible' }
-});
+  role: { type: String },
+  availability: { type: String }
+}, { timestamps: true });
+
 
 module.exports = mongoose.model('User', userSchema);
