@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
+
 
 export default function Login() {
   const { handleLogin } = useAuth();
@@ -8,6 +9,18 @@ export default function Login() {
   const location = useLocation();
   const [error, setError] = useState('');
   const [redirectMessage, setRedirectMessage] = useState('');
+  const [shouldRedirect, setShouldRedirect] = useState(false);
+
+  useEffect(() => {
+    if (shouldRedirect) {
+      const timer = setTimeout(() => {
+        navigate('/signup', {
+          state: { message: 'Please create an account to continue.' },
+        });
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [shouldRedirect, navigate]);
 
   const submit = async (e) => {
     e.preventDefault();
@@ -20,9 +33,7 @@ export default function Login() {
     } catch (err) {
       if (err.message.includes('User not found')) {
         setRedirectMessage('No account found. Redirecting to signup...');
-        setTimeout(() => {
-          navigate('/signup', { state: { message: 'Please create an account to continue.' } });
-        }, 2000); // 2-second delay to show message
+        setShouldRedirect(true);
       } else {
         setError(err.message);
       }
@@ -41,6 +52,20 @@ export default function Login() {
       <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
         Login
       </button>
+
+      <p className="mt-4 text-center text-sm text-gray-600">
+        Don’t have an account?{' '}
+        <Link to="/signup" className="text-blue-600 hover:underline font-medium">
+          Sign up here
+        </Link>
+      </p>
+
+      <p className="mt-2 text-center text-sm text-gray-600">
+        Just browsing?{' '}
+        <Link to="/" className="text-purple-600 hover:underline font-medium">
+          Go to Home
+        </Link>
+      </p>
     </form>
   );
 }
