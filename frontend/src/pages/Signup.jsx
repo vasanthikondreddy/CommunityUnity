@@ -1,128 +1,126 @@
-import React from "react";
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
-import { useForm } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
-import * as yup from "yup";
-import { toast, ToastContainer } from "react-toastify";
-import { motion } from "framer-motion";
-import "react-toastify/dist/ReactToastify.css";
-import { User, Mail, Lock, UserCheck } from "lucide-react";
+import { useState } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
-// ✅ Validation Schema
-const schema = yup.object().shape({
-  name: yup.string().required("Name is required").min(3),
-  email: yup.string().email("Invalid email").required("Email is required"),
-  password: yup.string().min(6, "Password must be at least 6 characters").required(),
-  role: yup.string().oneOf(["volunteer", "organizer", "admin"]),
-});
-
-const Signup = () => {
+export default function Signup() {
+  const { handleRegister } = useAuth();
   const navigate = useNavigate();
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm({
-    resolver: yupResolver(schema),
-  });
+  const location = useLocation();
+  const [error, setError] = useState('');
 
-  const onSubmit = async (data) => {
+  const submit = async (e) => {
+    e.preventDefault();
+
+    const formData = {
+      name: e.target.name.value.trim(),
+      email: e.target.email.value.trim(),
+      password: e.target.password.value,
+      phone: e.target.phone.value.trim(),
+      location: e.target.location.value.trim(),
+      interests: e.target.interests.value.trim(),
+      role: e.target.role.value,
+      availability: e.target.availability.value,
+    };
+
     try {
-      await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/auth/register`, data);
-      toast.success("Signup successful! Redirecting to login...");
-      setTimeout(() => navigate("/login"), 2000);
+      await handleRegister(formData);
+      navigate('/login', { state: { message: 'Account created! Please log in.' } });
     } catch (err) {
-      toast.error(err.response?.data?.message || "Signup failed");
+      setError(err.message);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 px-4">
-      <ToastContainer position="top-right" autoClose={3000} />
-      <motion.div
-        initial={{ opacity: 0, y: 40 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-md"
+    <form onSubmit={submit} className="max-w-lg mx-auto mt-10 p-6 bg-white shadow-md rounded">
+      <h2 className="text-2xl font-bold mb-4 text-center">Create Your CommunityUnity Account</h2>
+
+      {location.state?.message && (
+        <p className="text-blue-600 text-sm mb-4 text-center">{location.state.message}</p>
+      )}
+      {error && (
+        <p className="text-red-500 text-sm mb-4 text-center">{error}</p>
+      )}
+
+      <input
+        name="name"
+        placeholder="Full Name"
+        required
+        className="w-full mb-3 p-2 border rounded"
+      />
+      <input
+        name="email"
+        type="email"
+        placeholder="Email"
+        required
+        className="w-full mb-3 p-2 border rounded"
+      />
+      <input
+        name="password"
+        type="password"
+        placeholder="Password"
+        required
+        className="w-full mb-3 p-2 border rounded"
+      />
+      <input
+        name="phone"
+        placeholder="Phone Number"
+        className="w-full mb-3 p-2 border rounded"
+      />
+      <input
+        name="location"
+        placeholder="Location (City/Region)"
+        className="w-full mb-3 p-2 border rounded"
+      />
+      <textarea
+        name="interests"
+        placeholder="Your interests (e.g. teaching, cleanup)"
+        className="w-full mb-3 p-2 border rounded"
+      />
+
+      <select
+        name="role"
+        defaultValue=""
+        required
+        className="w-full mb-3 p-2 border rounded"
       >
-        <h2 className="text-3xl font-extrabold text-center text-gray-800 mb-8">
-          Create Your Account
-        </h2>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-          {/* Name */}
-          <div className="flex flex-col">
-            <div className="flex items-center border px-3 py-2 rounded-lg focus-within:ring-2 focus-within:ring-indigo-500">
-              <User className="text-gray-400 w-5 h-5 mr-2" />
-              <input
-                type="text"
-                placeholder="Full Name"
-                {...register("name")}
-                className="w-full bg-transparent outline-none text-gray-700"
-              />
-            </div>
-            {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>}
-          </div>
+        <option value="" disabled>Select Role</option>
+        <option value="member">Member</option>
+        <option value="organizer">Organizer</option>
+        <option value="admin">Admin</option>
+      </select>
 
-          {/* Email */}
-          <div className="flex flex-col">
-            <div className="flex items-center border px-3 py-2 rounded-lg focus-within:ring-2 focus-within:ring-indigo-500">
-              <Mail className="text-gray-400 w-5 h-5 mr-2" />
-              <input
-                type="email"
-                placeholder="Email Address"
-                {...register("email")}
-                className="w-full bg-transparent outline-none text-gray-700"
-              />
-            </div>
-            {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>}
-          </div>
+      <select
+        name="availability"
+        defaultValue=""
+        required
+        className="w-full mb-4 p-2 border rounded"
+      >
+        <option value="" disabled>Select Availability</option>
+        <option value="weekdays">Weekdays</option>
+        <option value="weekends">Weekends</option>
+        <option value="flexible">Flexible</option>
+      </select>
 
-          {/* Password */}
-          <div className="flex flex-col">
-            <div className="flex items-center border px-3 py-2 rounded-lg focus-within:ring-2 focus-within:ring-indigo-500">
-              <Lock className="text-gray-400 w-5 h-5 mr-2" />
-              <input
-                type="password"
-                placeholder="Password"
-                {...register("password")}
-                className="w-full bg-transparent outline-none text-gray-700"
-              />
-            </div>
-            {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>}
-          </div>
+      <button
+        type="submit"
+        className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 transition"
+      >
+        Sign Up
+      </button>
+      <p className="mt-4 text-center text-sm text-gray-600">
+  Already have an account?{' '}
+  <a href="/login" className="text-blue-600 hover:underline font-medium">
+    Log in here
+  </a>
+</p>
+<p className="mt-2 text-center text-sm text-gray-600">
+        Just browsing?{' '}
+        <Link to="/" className="text-purple-600 hover:underline font-medium">
+          Go to Home
+        </Link>
+      </p>
 
-          {/* Role */}
-          <div className="flex flex-col">
-            <div className="flex items-center border px-3 py-2 rounded-lg focus-within:ring-2 focus-within:ring-indigo-500">
-              <UserCheck className="text-gray-400 w-5 h-5 mr-2" />
-              <select
-                {...register("role")}
-                className="w-full bg-transparent outline-none text-gray-700"
-              >
-                <option value="volunteer">Volunteer</option>
-                <option value="organizer">Organizer</option>
-                <option value="admin">Admin</option>
-              </select>
-            </div>
-            {errors.role && <p className="text-red-500 text-sm mt-1">{errors.role.message}</p>}
-          </div>
-
-          {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className={`w-full py-3 rounded-lg font-semibold text-white transition-all duration-300 ${
-              isSubmitting ? "bg-gray-400 cursor-not-allowed" : "bg-indigo-600 hover:bg-indigo-700"
-            }`}
-          >
-            {isSubmitting ? "Signing up..." : "Sign Up"}
-          </button>
-        </form>
-        
-      </motion.div>
-    </div>
+    </form>
   );
-};
-
-export default Signup;
+}

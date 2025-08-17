@@ -1,37 +1,78 @@
+import { createContext, useContext, useState, useEffect } from 'react';
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+export const AuthContext = createContext();
 
-const AuthContext = createContext();
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
 
-  const login = (userData) => {
-    setUser(userData);
-    localStorage.setItem("communityUser", JSON.stringify(userData));
+  const handleRegister = async ({ name, email, password }) => {
+    try {
+      const res = await fetch(`${API_BASE}/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Signup failed');
+
+      localStorage.setItem('authToken', data.token);
+      setUser(data.user);
+    } catch (err) {
+      console.error('Signup error:', err.message);
+      throw err;
+    }
   };
 
-  const logout = () => {
+  const handleLogin = async ({ email, password }) => {
+    try {
+      const res = await fetch(`${API_BASE}/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Login failed');
+
+      localStorage.setItem('authToken', data.token);
+      setUser(data.user);
+    } catch (err) {
+      console.error('Login error:', err.message);
+      throw err;
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('authToken');
     setUser(null);
-    localStorage.removeItem("communityUser");
   };
 
   useEffect(() => {
-    const stored = localStorage.getItem("communityUser");
-    if (stored) setUser(JSON.parse(stored));
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      try {
+        const parts = token.split('.');
+        if (parts.length !== 3) throw new Error('Invalid token format');
+
+        const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+        const payload = JSON.parse(atob(base64));
+        setUser({ email: payload.email, role: payload.role });
+      } catch (err) {
+        console.error('Token decode error:', err.message);
+        localStorage.removeItem('authToken');
+        setUser(null);
+      }
+    }
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, handleLogin, handleRegister, handleLogout }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
-};
+export const useAuth = () => useContext(AuthContext);

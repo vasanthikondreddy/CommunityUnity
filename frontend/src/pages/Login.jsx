@@ -1,115 +1,71 @@
-// src/pages/Login.jsx
-import React, { useState } from "react";
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
-import { useForm } from "react-hook-form";
-import { motion } from "framer-motion";
-import { Mail, Lock } from "lucide-react";
-import { useAuth } from "../context/AuthContext";
+import { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 
-const Login = () => {
-  const { login } = useAuth();
+
+export default function Login() {
+  const { handleLogin } = useAuth();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
-  const [serverError, setServerError] = useState("");
+  const location = useLocation();
+  const [error, setError] = useState('');
+  const [redirectMessage, setRedirectMessage] = useState('');
+  const [shouldRedirect, setShouldRedirect] = useState(false);
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    reset,
-  } = useForm();
+  useEffect(() => {
+    if (shouldRedirect) {
+      const timer = setTimeout(() => {
+        navigate('/signup', {
+          state: { message: 'Please create an account to continue.' },
+        });
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [shouldRedirect, navigate]);
 
-  const onSubmit = async (data) => {
-    setLoading(true);
-    setServerError("");
+  const submit = async (e) => {
+    e.preventDefault();
+    const email = e.target.email.value;
+    const password = e.target.password.value;
+
     try {
-      const res = await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}/api/auth/login`,
-        data
-      );
-      login(res.data.token, res.data.user);
-      navigate("/dashboard");
+      await handleLogin({ email, password });
+      navigate('/dashboard');
     } catch (err) {
-      setServerError(err.response?.data?.message || "Login failed");
-    } finally {
-      setLoading(false);
-      reset();
+      if (err.message.includes('User not found')) {
+        setRedirectMessage('No account found. Redirecting to signup...');
+        setShouldRedirect(true);
+      } else {
+        setError(err.message);
+      }
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 px-4">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5 }}
-        className="bg-white p-10 rounded-3xl shadow-2xl w-full max-w-md"
-      >
-        <h2 className="text-3xl font-bold text-center text-blue-700 mb-6">
-          Welcome Back
-        </h2>
+    <form onSubmit={submit} className="max-w-md mx-auto mt-10 p-6 bg-white shadow-md rounded">
+      <h2 className="text-2xl font-bold mb-4 text-center">Login to CommunityUnity</h2>
+      {location.state?.message && <p className="text-green-600 text-sm mb-2 text-center">{location.state.message}</p>}
+      {error && <p className="text-red-500 text-sm mb-2 text-center">{error}</p>}
+      {redirectMessage && <p className="text-yellow-600 text-sm mb-4 text-center">{redirectMessage}</p>}
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-          <div>
-            <div className="flex items-center border rounded-lg px-3">
-              <Mail className="text-gray-400 w-5 h-5 mr-2" />
-              <input
-                type="email"
-                placeholder="Email Address"
-                {...register("email", {
-                  required: "Email is required",
-                  pattern: {
-                    value: /^\S+@\S+$/i,
-                    message: "Invalid email format",
-                  },
-                })}
-                className="w-full p-2 outline-none"
-              />
-            </div>
-            {errors.email && (
-              <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
-            )}
-          </div>
+      <input name="email" type="email" placeholder="Email" required className="w-full mb-3 p-2 border rounded" />
+      <input name="password" type="password" placeholder="Password" required className="w-full mb-4 p-2 border rounded" />
+      <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
+        Login
+      </button>
 
-          <div>
-            <div className="flex items-center border rounded-lg px-3">
-              <Lock className="text-gray-400 w-5 h-5 mr-2" />
-              <input
-                type="password"
-                placeholder="Password"
-                {...register("password", {
-                  required: "Password is required",
-                  minLength: {
-                    value: 6,
-                    message: "Password must be at least 6 characters",
-                  },
-                })}
-                className="w-full p-2 outline-none"
-              />
-            </div>
-            {errors.password && (
-              <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>
-            )}
-          </div>
+      <p className="mt-4 text-center text-sm text-gray-600">
+        Don’t have an account?{' '}
+        <Link to="/signup" className="text-blue-600 hover:underline font-medium">
+          Sign up here
+        </Link>
+      </p>
 
-          {serverError && (
-            <p className="text-red-600 text-sm text-center">{serverError}</p>
-          )}
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
-          >
-            {loading ? "Logging in..." : "Login"}
-          </button>
-        </form>
-
-       
-      </motion.div>
-    </div>
+      <p className="mt-2 text-center text-sm text-gray-600">
+        Just browsing?{' '}
+        <Link to="/" className="text-purple-600 hover:underline font-medium">
+          Go to Home
+        </Link>
+      </p>
+    </form>
   );
-};
-
-export default Login;
+}
