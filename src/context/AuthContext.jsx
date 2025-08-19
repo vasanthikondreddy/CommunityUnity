@@ -7,12 +7,12 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL;
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
 
-  const handleRegister = async ({ name, email, password }) => {
+  const handleRegister = async (formData) => {
     try {
-      const res = await fetch(`${API_BASE}/register`, {
+      const res = await fetch(`${API_BASE}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify(formData),
       });
 
       const data = await res.json();
@@ -28,7 +28,7 @@ export const AuthProvider = ({ children }) => {
 
   const handleLogin = async ({ email, password }) => {
     try {
-      const res = await fetch(`${API_BASE}/login`, {
+      const res = await fetch(`${API_BASE}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),

@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 
-
 export default function Login() {
   const { handleLogin } = useAuth();
   const navigate = useNavigate();
@@ -43,13 +42,35 @@ export default function Login() {
   return (
     <form onSubmit={submit} className="max-w-md mx-auto mt-10 p-6 bg-white shadow-md rounded">
       <h2 className="text-2xl font-bold mb-4 text-center">Login to CommunityUnity</h2>
-      {location.state?.message && <p className="text-green-600 text-sm mb-2 text-center">{location.state.message}</p>}
-      {error && <p className="text-red-500 text-sm mb-2 text-center">{error}</p>}
-      {redirectMessage && <p className="text-yellow-600 text-sm mb-4 text-center">{redirectMessage}</p>}
 
-      <input name="email" type="email" placeholder="Email" required className="w-full mb-3 p-2 border rounded" />
-      <input name="password" type="password" placeholder="Password" required className="w-full mb-4 p-2 border rounded" />
-      <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
+      {location.state?.message && (
+        <p className="text-green-600 text-sm mb-2 text-center">{location.state.message}</p>
+      )}
+      {error && (
+        <p className="text-red-500 text-sm mb-2 text-center">{error}</p>
+      )}
+      {redirectMessage && (
+        <p className="text-yellow-600 text-sm mb-4 text-center">{redirectMessage}</p>
+      )}
+
+      <input
+        name="email"
+        type="email"
+        placeholder="Email"
+        required
+        className="w-full mb-3 p-2 border rounded"
+      />
+      <input
+        name="password"
+        type="password"
+        placeholder="Password"
+        required
+        className="w-full mb-4 p-2 border rounded"
+      />
+      <button
+        type="submit"
+        className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
+      >
         Login
       </button>
 
@@ -64,6 +85,13 @@ export default function Login() {
         Just browsing?{' '}
         <Link to="/" className="text-purple-600 hover:underline font-medium">
           Go to Home
+        </Link>
+      </p>
+
+      <p className="mt-2 text-center text-sm text-gray-600">
+        Want to create an event directly?{' '}
+        <Link to="/create-event" className="text-blue-600 hover:underline font-medium">
+          Go to Event Creation
         </Link>
       </p>
     </form>

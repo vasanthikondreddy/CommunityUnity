@@ -1,24 +1,37 @@
 import { useAuth } from '../context/AuthContext';
-import { useNavigate, Navigate } from 'react-router-dom';
-
+import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Link } from 'react-router-dom';
 export default function Dashboard() {
-  const { user, handleLogout } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
-  if (!user) return <Navigate to="/login" />;
+  useEffect(() => {
+    if (!user) {
+      navigate('/login', { state: { message: 'Please log in to access your dashboard.' } });
+    }
+  }, [user, navigate]);
 
-  const logout = () => {
-    handleLogout();
-    navigate('/login');
-  };
+  if (!user) return null; 
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded shadow-md w-full max-w-md text-center">
-        <h1 className="text-3xl font-bold mb-4">Welcome, {user.name || user.email}!</h1>
-        <p className="text-gray-600 mb-6">Role: {user.role}</p>
-        <button onClick={logout} className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Logout</button>
+    <div className="max-w-xl mx-auto mt-10 p-6 bg-white shadow-md rounded">
+      <h2 className="text-2xl font-bold mb-4 text-center">Welcome, {user.name || user.email}!</h2>
+
+      <div className="space-y-2 text-gray-700">
+        <p><strong>Role:</strong> {user.role}</p>
+        <p><strong>Email:</strong> {user.email}</p>
+        {user.phone && <p><strong>Phone:</strong> {user.phone}</p>}
+        {user.location && <p><strong>Location:</strong> {user.location}</p>}
+        {user.availability && <p><strong>Availability:</strong> {user.availability}</p>}
+        {user.interests?.length > 0 && (
+          <p><strong>Interests:</strong> {user.interests.join(', ')}</p>
+        )}
       </div>
+      <Link to="/my-events" className="text-blue-600 hover:underline font-medium">
+  View My Events
+</Link>
+
     </div>
   );
 }
