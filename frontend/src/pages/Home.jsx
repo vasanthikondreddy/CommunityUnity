@@ -19,6 +19,17 @@ export default function Home() {
       <Link to="/signup" className="bg-green-600 text-white px-6 py-3 rounded hover:bg-green-700 transition">
         Sign Up
       </Link>
+      {/* <Link to="/create-event" className="text-blue-600 hover:underline">
+        Create New Event
+      </Link> */}
+     
+<Link
+  to="/create-event"
+  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+>
+  ➕ Create Event
+</Link>
+
     </div>
   </div>
 </main>

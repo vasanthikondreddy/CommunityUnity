@@ -56,8 +56,6 @@ exports.login = async (req, res) => {
   }
 };
 
-// @route   GET /api/auth/profile
-// @desc    Get user profile
 exports.getProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('-password');

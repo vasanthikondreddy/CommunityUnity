@@ -1,63 +1,105 @@
+// src/pages/CreateEvent.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const CreateEvent = () => {
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
+  const [name, setName] = useState('');
   const [date, setDate] = useState('');
+  const [location, setLocation] = useState('');
+  const [description, setDescription] = useState('');
+  const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(false);
+
   const navigate = useNavigate();
+  const organizer = '64e1f8c9a2b3d9e7f4a12345'; // Replace with actual user ID
 
-  const API_BASE = import.meta.env.VITE_API_BASE_URL;
-
-  const handleSubmit = async e => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!name || !date || !location || !description) {
+      setMessage('❌ Please fill out all fields');
+      return;
+    }
+
+    const eventData = { name, date, location, description, organizer };
+    setLoading(true);
+
     try {
-      const res = await fetch(`${API_BASE}/events`, {
+      const response = await fetch('http://localhost:5000/api/events', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, description, date }),
+        body: JSON.stringify(eventData)
       });
-      if (res.ok) {
-        navigate('/');
+
+      const result = await response.json();
+
+      if (response.ok) {
+        setMessage('✅ Event created successfully!');
+        setTimeout(() => navigate('/events'), 1500);
       } else {
-        alert('Failed to create event');
+        setMessage(`❌ ${result.error || 'Failed to create event'}`);
       }
-    } catch (err) {
-      console.error('Error creating event:', err);
+    } catch (error) {
+      console.error('Error submitting event:', error);
+      setMessage('❌ Server error. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="max-w-xl mx-auto p-6">
+    <div className="max-w-xl mx-auto p-6 bg-white rounded shadow">
       <h1 className="text-2xl font-bold mb-4">📝 Create New Event</h1>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <input
-          type="text"
-          placeholder="Event Title"
-          value={title}
-          onChange={e => setTitle(e.target.value)}
-          className="w-full border p-2 rounded"
-          required
-        />
-        <textarea
-          placeholder="Event Description"
-          value={description}
-          onChange={e => setDescription(e.target.value)}
-          className="w-full border p-2 rounded"
-          required
-        />
-        <input
-          type="date"
-          value={date}
-          onChange={e => setDate(e.target.value)}
-          className="w-full border p-2 rounded"
-          required
-        />
+      {message && <p className="mb-4 text-sm text-red-600">{message}</p>}
+      <form onSubmit={handleSubmit}>
+        <div className="mb-4">
+          <label className="block text-sm font-medium mb-1">Event Name</label>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="w-full border px-3 py-2 rounded"
+            required
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block text-sm font-medium mb-1">Date & Time</label>
+          <input
+            type="datetime-local"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            className="w-full border px-3 py-2 rounded"
+            required
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block text-sm font-medium mb-1">Location</label>
+          <input
+            type="text"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            className="w-full border px-3 py-2 rounded"
+            required
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block text-sm font-medium mb-1">Description</label>
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="w-full border px-3 py-2 rounded"
+            rows="4"
+            required
+          />
+        </div>
         <button
           type="submit"
-          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+          disabled={loading}
+          className={`w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 ${
+            loading ? 'opacity-50 cursor-not-allowed' : ''
+          }`}
         >
-          ✅ Submit
+          {loading ? 'Creating...' : 'Create Event'}
         </button>
       </form>
     </div>
