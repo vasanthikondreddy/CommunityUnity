@@ -1,7 +1,8 @@
 const express = require('express');
+const upload = require('../middlewares/upload');
 const mongoose = require('mongoose');
 const Event = require('../models/Event');
-const router = express.Router();
+// const EventFile = require('../models/EventFile');
 const {
   createEvent,
   getAllEvents,
@@ -9,10 +10,19 @@ const {
   createSignup
 } = require('../controllers/eventController');
 
+const router = express.Router();
+
 router.post('/', createEvent); 
-router.get('/', getAllEvents); 
+
+router.get('/', getAllEvents);
+
+
 router.get('/user/:userId', getEventsByUser); 
+
+
 router.post('/:eventId/signups', createSignup); 
+
+
 router.get('/created/:userId', async (req, res) => {
   const { userId } = req.params;
 
@@ -34,5 +44,25 @@ router.get('/created/:userId', async (req, res) => {
   }
 });
 
+router.post('/:eventId/files', upload.single('file'), async (req, res) => {
+  try {
+    const { eventId } = req.params;
+    const file = req.file;
+
+    if (!file) return res.status(400).json({ error: 'No file uploaded' });
+
+    const eventFile = new EventFile({
+      eventId,
+      file_name: file.originalname,
+      file_url: `/uploads/${file.filename}` // or Cloudinary URL
+    });
+
+    await eventFile.save();
+    res.status(201).json(eventFile);
+  } catch (err) {
+    console.error('File upload error:', err);
+    res.status(500).json({ error: 'Failed to upload file' });
+  }
+});
 
 module.exports = router;

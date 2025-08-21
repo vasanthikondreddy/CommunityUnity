@@ -1,41 +1,64 @@
-import { useEffect, useState } from 'react';
-import { useAuth } from '../context/AuthContext';
+import React, { useEffect, useState } from 'react';
+import socket from '../services/socket'; 
+import EventCard from '../components/Event/EventCard';
+import EventForm from '../components/Event/EventForm';
 
-export default function MyEvents() {
-  const { user } = useAuth();
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
+
+const Events = () => {
   const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/events/user/${user._id}`);
-        const data = await res.json();
-        setEvents(data);
-      } catch (err) {
+    fetch(`${API_BASE}/events`)
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          setEvents(data);
+        } else {
+          console.error('Expected array, got:', data);
+          setEvents([]);
+        }
+        setLoading(false);
+      })
+      .catch(err => {
         console.error('Error fetching events:', err);
-      }
-    };
+        setEvents([]);
+        setLoading(false);
+      });
+  }, []);
 
-    if (user?._id) fetchEvents();
-  }, [user]);
+  // useEffect(() => {
+  //   socket.on('newEvent', newEvent => {
+  //     setEvents(prev => Array.isArray(prev) ? [...prev, newEvent] : [newEvent]);
+  //   });
+  useEffect(() => {
+  socket.on("newEvent", (event) => {
+    setEvents((prevEvents) => [event, ...prevEvents]);
+  });
+
+    return () => {
+      socket.off('newEvent');
+    };
+  }, []);
+
+  if (loading) return <p>Loading events...</p>;
 
   return (
-    <div className="max-w-3xl mx-auto mt-10 p-6 bg-white shadow-md rounded">
-      <h2 className="text-2xl font-bold mb-4 text-center">My Events</h2>
-      {events.length === 0 ? (
-        <p className="text-center text-gray-600">You haven’t joined or created any events yet.</p>
-      ) : (
-        <ul className="space-y-4">
-          {events.map(event => (
-            <li key={event._id} className="border p-4 rounded shadow-sm">
-              <h3 className="text-xl font-semibold">{event.title}</h3>
-              <p className="text-sm text-gray-700">{event.description}</p>
-              <p className="text-sm text-gray-500">📍 {event.location} | 📅 {new Date(event.date).toLocaleDateString()}</p>
-              <p className="text-sm text-gray-500">👤 Organizer: {event.organizer?.name}</p>
-            </li>
-          ))}
-        </ul>
-      )}
+    <div className="px-4 py-6">
+      <EventForm />
+
+      <div className="event-list mt-6">
+        {Array.isArray(events) && events.length > 0 ? (
+          events.map(event => (
+            <EventCard key={event._id} event={event} />
+          ))
+        ) : (
+          <p>No events available.</p>
+        )}
+      </div>
     </div>
   );
-}
+};
+
+export default Events;

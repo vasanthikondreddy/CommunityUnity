@@ -1,4 +1,5 @@
 const Event = require('../models/Event');
+const { getIO } = require('../socket');
 const createEvent = async (req, res) => {
   try {
     const { name, description, date, location, organizer } = req.body;

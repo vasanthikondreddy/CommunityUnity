@@ -2,20 +2,20 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { io } from 'socket.io-client';
 
-const socket = io(import.meta.env.VITE_API_BASE_URL); // e.g., http://localhost:5000
+const socket = io(import.meta.env.VITE_API_BASE_URL); 
 
 const EventList = () => {
   const [events, setEvents] = useState([]);
 
   useEffect(() => {
-    // Initial fetch
+    
     axios.get(`${import.meta.env.VITE_API_BASE_URL}/events`)
       .then(res => setEvents(res.data))
       .catch(err => console.error('Error fetching events:', err));
 
-    // Listen for new events
+  
     socket.on('newEvent', (event) => {
-      setEvents(prev => [event, ...prev]); // Add new event to top
+      setEvents(prev => [event, ...prev]); 
     });
 
     return () => {
