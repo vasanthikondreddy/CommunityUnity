@@ -4,7 +4,6 @@ const mongoose = require('mongoose');
 const Event = require('../models/Event');
 const EventSignup = require('../models/EventSignup');
 const EventFile = require('../models/EventFile');
-
 const {
   createEvent,
   getAllEvents,
@@ -14,14 +13,72 @@ const {
 
 const router = express.Router();
 
-router.post('/', createEvent);
+// 🛠️ Create Event (with optional file)
+router.post('/', upload.single('file'), async (req, res) => {
+  try {
+    const { title, description, date, location, organizer } = req.body;
 
+    if (!title || !description || !date || !location || !organizer) {
+      return res.status(400).json({ success: false, error: 'Missing required fields' });
+    }
 
-router.get('/', getAllEvents);
+    let fileData = null;
+    if (req.file && req.file.originalname && req.file.filename) {
+      fileData = {
+        file_name: req.file.originalname,
+        file_url: `/uploads/${req.file.filename}`,
+      };
+    }
 
+    const event = new Event({
+      title,
+      description,
+      date,
+      location,
+      organizer,
+      ...(fileData && { file: fileData }),
+    });
+
+    await event.save();
+    res.status(201).json({ success: true, data: event, message: 'Event created successfully' });
+  } catch (err) {
+    console.error('🔥 Event creation error:', err.stack);
+    res.status(500).json({ success: false, error: 'Failed to create event' });
+  }
+});
+
+// 📅 Get All Events
+router.get('/', async (req, res) => {
+  try {
+    const events = await Event.find().sort({ date: 1 });
+    res.status(200).json({ success: true, data: events });
+  } catch (err) {
+    console.error('Error fetching events:', err);
+    res.status(500).json({ success: false, error: 'Failed to fetch events' });
+  }
+});
+// 👥 Get Participants for an Event
+router.get('/:eventId/participants', async (req, res) => {
+  const { eventId } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(eventId)) {
+    return res.status(400).json({ success: false, error: 'Invalid event ID format' });
+  }
+
+  try {
+    const signups = await EventSignup.find({ eventId }).populate('userId', 'name email');
+    const participants = signups.map(s => s.userId); // Extract user info
+    res.status(200).json({ success: true, data: participants });
+  } catch (err) {
+    console.error('Participant fetch error:', err);
+    res.status(500).json({ success: false, error: 'Failed to fetch participants' });
+  }
+});
+
+// 👤 Get Events by User Signup
 router.get('/user/:userId', getEventsByUser);
 
-
+// 📝 Get Events Created by Organizer
 router.get('/created/:userId', async (req, res) => {
   const { userId } = req.params;
 
@@ -31,11 +88,10 @@ router.get('/created/:userId', async (req, res) => {
 
   try {
     const events = await Event.find({ organizer: userId });
-
     res.status(200).json({
       success: true,
       data: events,
-      message: events.length ? 'Events fetched successfully' : 'No events found for this user'
+      message: events.length ? 'Events fetched successfully' : 'No events found for this user',
     });
   } catch (err) {
     console.error('Error fetching created events:', err);
@@ -43,6 +99,7 @@ router.get('/created/:userId', async (req, res) => {
   }
 });
 
+// 🔍 Get Single Event by ID
 router.get('/:eventId', async (req, res) => {
   const { eventId } = req.params;
 
@@ -51,7 +108,7 @@ router.get('/:eventId', async (req, res) => {
   }
 
   try {
-    const event = await Event.findById(eventId);
+    const event = await Event.findById(eventId).populate('organizer', '_id name email');
 
     if (!event) {
       return res.status(404).json({ success: false, error: 'Event not found' });
@@ -64,6 +121,7 @@ router.get('/:eventId', async (req, res) => {
   }
 });
 
+// 📎 Upload Additional File to Event
 router.post('/:eventId/files', upload.single('file'), async (req, res) => {
   try {
     const { eventId } = req.params;
@@ -76,7 +134,7 @@ router.post('/:eventId/files', upload.single('file'), async (req, res) => {
     const eventFile = new EventFile({
       eventId,
       file_name: file.originalname,
-      file_url: `/uploads/${file.filename}` // or Cloudinary URL
+      file_url: `/uploads/${file.filename}`,
     });
 
     await eventFile.save();
@@ -87,7 +145,7 @@ router.post('/:eventId/files', upload.single('file'), async (req, res) => {
   }
 });
 
-
+// 📂 Get Files for an Event
 router.get('/:eventId/files', async (req, res) => {
   try {
     const files = await EventFile.find({ eventId: req.params.eventId });
@@ -98,6 +156,7 @@ router.get('/:eventId/files', async (req, res) => {
   }
 });
 
+// ✏️ Update Event
 router.put('/:eventId', async (req, res) => {
   const { eventId } = req.params;
   const updates = req.body;
@@ -109,7 +168,7 @@ router.put('/:eventId', async (req, res) => {
   try {
     const updatedEvent = await Event.findByIdAndUpdate(eventId, updates, {
       new: true,
-      runValidators: true
+      runValidators: true,
     });
 
     if (!updatedEvent) {
@@ -123,6 +182,7 @@ router.put('/:eventId', async (req, res) => {
   }
 });
 
+// 🗑️ Delete Event and Related Data
 router.delete('/:eventId', async (req, res) => {
   const { eventId } = req.params;
 
@@ -137,7 +197,6 @@ router.delete('/:eventId', async (req, res) => {
       return res.status(404).json({ success: false, error: 'Event not found' });
     }
 
-   
     await EventSignup.deleteMany({ eventId });
     await EventFile.deleteMany({ eventId });
 
@@ -148,7 +207,7 @@ router.delete('/:eventId', async (req, res) => {
   }
 });
 
-
+// ✅ Signup for Event
 router.post('/:eventId/signups', async (req, res) => {
   const { eventId } = req.params;
   const { userId } = req.body;

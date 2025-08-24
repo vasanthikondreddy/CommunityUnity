@@ -1,62 +1,98 @@
+// src/pages/Events.jsx
 import React, { useEffect, useState } from 'react';
-import socket from '../services/socket'; 
-import EventCard from '../components/Event/EventCard';
-import EventForm from '../components/Event/EventForm';
+import EventList from './EventList.jsx';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
-const Events = () => {
+const Events = ({ socket }) => {
   const [events, setEvents] = useState([]);
+  const [filteredEvents, setFilteredEvents] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  const userRole = localStorage.getItem('role');
+  const user = JSON.parse(localStorage.getItem('user')) || null;
 
   useEffect(() => {
-    fetch(`${API_BASE}/events`)
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data)) {
-          setEvents(data);
+    const fetchEvents = async () => {
+      try {
+        const response = await fetch(`${API_BASE}/events`);
+        const result = await response.json();
+
+        // ✅ Access result.data instead of result
+        if (response.ok && Array.isArray(result.data)) {
+          setEvents(result.data);
+          setFilteredEvents(result.data);
         } else {
-          console.error('Expected array, got:', data);
-          setEvents([]);
+          console.error('Unexpected response:', result);
+          setError('Failed to load events');
         }
-        setLoading(false);
-      })
-      .catch(err => {
+      } catch (err) {
         console.error('Error fetching events:', err);
-        setEvents([]);
+        setError('Server error. Please try again later.');
+      } finally {
         setLoading(false);
-      });
+      }
+    };
+
+    fetchEvents();
   }, []);
 
-  // useEffect(() => {
-  //   socket.on('newEvent', newEvent => {
-  //     setEvents(prev => Array.isArray(prev) ? [...prev, newEvent] : [newEvent]);
-  //   });
+  // ✅ Listen for new events via socket
   useEffect(() => {
-  socket.on("newEvent", (event) => {
-    setEvents((prevEvents) => [event, ...prevEvents]);
-  });
+    if (!socket) return;
+
+    socket.on('newEvent', (newEvent) => {
+      setEvents(prev => [newEvent, ...prev]);
+      setFilteredEvents(prev => [newEvent, ...prev]);
+    });
 
     return () => {
       socket.off('newEvent');
     };
-  }, []);
+  }, [socket]);
 
-  if (loading) return <p>Loading events...</p>;
+  useEffect(() => {
+    const filtered = events.filter(event =>
+      event.title?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setFilteredEvents(filtered);
+  }, [searchTerm, events]);
+
+  const handleDelete = (id) => {
+    setEvents(prev => prev.filter(event => event._id !== id));
+    setFilteredEvents(prev => prev.filter(event => event._id !== id));
+  };
 
   return (
-    <div className="px-4 py-6">
-      <EventForm />
+    <div className="max-w-4xl mx-auto p-6">
+      <h1 className="text-2xl font-bold mb-4">🎉 All Events</h1>
 
-      <div className="event-list mt-6">
-        {Array.isArray(events) && events.length > 0 ? (
-          events.map(event => (
-            <EventCard key={event._id} event={event} />
-          ))
-        ) : (
-          <p>No events available.</p>
-        )}
+      <div className="mb-6">
+        <input
+          type="text"
+          placeholder="🔍 Search by title..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full border px-4 py-2 rounded shadow-sm"
+        />
       </div>
+
+      {loading ? (
+        <p className="text-gray-500">Loading events...</p>
+      ) : error ? (
+        <p className="text-red-600">{error}</p>
+      ) : filteredEvents.length === 0 ? (
+        <p className="text-gray-500">No matching events found.</p>
+      ) : (
+        <EventList
+          events={filteredEvents}
+          userRole={userRole}
+          user={user}
+          onDelete={handleDelete}
+        />
+      )}
     </div>
   );
 };

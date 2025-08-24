@@ -1,109 +1,114 @@
 // src/pages/CreateEvent.jsx
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 
-const CreateEvent = () => {
-  const [name, setName] = useState('');
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
+
+export default function CreateEvent({ socket }) {
+  const [title, setTitle] = useState('');
   const [date, setDate] = useState('');
   const [location, setLocation] = useState('');
   const [description, setDescription] = useState('');
-  const [message, setMessage] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [file, setFile] = useState(null);
 
-  const navigate = useNavigate();
-  const organizer = '64e1f8c9a2b3d9e7f4a12345'; // Replace with actual user ID
+  const user = JSON.parse(localStorage.getItem('user'));
+  const token = localStorage.getItem('token');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!name || !date || !location || !description) {
-      setMessage('❌ Please fill out all fields');
+    if (!user?._id) {
+      alert('Organizer ID missing. Please log in again.');
       return;
     }
 
-    const eventData = { name, date, location, description, organizer };
-    setLoading(true);
+    const formData = new FormData();
+    formData.append('title', title);
+    formData.append('description', description);
+    formData.append('date', date);
+    formData.append('location', location);
+    formData.append('organizer', user._id); // ✅ Required by backend
+    if (file) formData.append('file', file); // ✅ Optional file
 
     try {
-      const response = await fetch('http://localhost:5000/api/events', {
+      const res = await fetch(`${API_BASE}/events`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(eventData)
+        headers: {
+          Authorization: `Bearer ${token}`, // ✅ Include token if route is protected
+        },
+        body: formData,
       });
 
-      const result = await response.json();
+      const result = await res.json();
 
-      if (response.ok) {
-        setMessage('✅ Event created successfully!');
-        setTimeout(() => navigate('/events'), 1500);
+      if (res.ok && result.success) {
+        alert('✅ Event created successfully!');
+        socket?.emit('newEvent', result.data); // ✅ Real-time update
+        // Optionally reset form
+        setTitle('');
+        setDate('');
+        setLocation('');
+        setDescription('');
+        setFile(null);
       } else {
-        setMessage(`❌ ${result.error || 'Failed to create event'}`);
+        alert(result.error || 'Failed to create event');
       }
-    } catch (error) {
-      console.error('Error submitting event:', error);
-      setMessage('❌ Server error. Please try again.');
-    } finally {
-      setLoading(false);
+    } catch (err) {
+      console.error('Create event error:', err);
+      alert('Server error. Please try again later.');
     }
   };
 
   return (
-    <div className="max-w-xl mx-auto p-6 bg-white rounded shadow">
-      <h1 className="text-2xl font-bold mb-4">📝 Create New Event</h1>
-      {message && <p className="mb-4 text-sm text-red-600">{message}</p>}
-      <form onSubmit={handleSubmit}>
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-1">Event Name</label>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="w-full border px-3 py-2 rounded"
-            required
-          />
-        </div>
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-1">Date & Time</label>
-          <input
-            type="datetime-local"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className="w-full border px-3 py-2 rounded"
-            required
-          />
-        </div>
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-1">Location</label>
-          <input
-            type="text"
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            className="w-full border px-3 py-2 rounded"
-            required
-          />
-        </div>
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-1">Description</label>
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="w-full border px-3 py-2 rounded"
-            rows="4"
-            required
-          />
-        </div>
-        <button
-          type="submit"
-          disabled={loading}
-          className={`w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 ${
-            loading ? 'opacity-50 cursor-not-allowed' : ''
-          }`}
-        >
-          {loading ? 'Creating...' : 'Create Event'}
-        </button>
-      </form>
-    </div>
-  );
-};
+    <form onSubmit={handleSubmit} className="max-w-md mx-auto p-4 bg-white rounded shadow">
+      <h2 className="text-xl font-bold mb-4">📅 Create New Event</h2>
 
-export default CreateEvent;
+      <input
+        type="text"
+        placeholder="Event Title"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        className="w-full mb-3 p-2 border rounded"
+        required
+      />
+
+      <input
+        type="date"
+        value={date}
+        onChange={(e) => setDate(e.target.value)}
+        className="w-full mb-3 p-2 border rounded"
+        required
+      />
+
+      <input
+        type="text"
+        placeholder="Location"
+        value={location}
+        onChange={(e) => setLocation(e.target.value)}
+        className="w-full mb-3 p-2 border rounded"
+        required
+      />
+
+      <textarea
+        placeholder="Description"
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+        className="w-full mb-3 p-2 border rounded"
+        rows={4}
+        required
+      />
+
+      <input
+        type="file"
+        onChange={(e) => setFile(e.target.files[0])}
+        className="w-full mb-4"
+      />
+
+      <button
+        type="submit"
+        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+      >
+        Create Event
+      </button>
+    </form>
+  );
+}

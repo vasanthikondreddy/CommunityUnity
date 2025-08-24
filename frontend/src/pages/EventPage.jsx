@@ -1,21 +1,24 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
+import { useAuth } from './../context/AuthContext';
 
-const EventPage = () => {
+export default function EventPage() {
   const { eventId } = useParams();
+  const navigate = useNavigate();
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [joining, setJoining] = useState(false);
+
+  const user = JSON.parse(localStorage.getItem('user')) || null;
+  const token = localStorage.getItem('token');
 
   useEffect(() => {
     const fetchEvent = async () => {
       try {
         const res = await fetch(`${API_BASE}/events/${eventId}`);
-        if (!res.ok) throw new Error('Event not found');
         const data = await res.json();
-        setEvent(data.success ? data.data : data); // Adjust if backend wraps in { success, data }
+        setEvent(data.data || data); // Adjust if wrapped in { success, data }
       } catch (err) {
         console.error('Error fetching event:', err);
       } finally {
@@ -26,59 +29,100 @@ const EventPage = () => {
     fetchEvent();
   }, [eventId]);
 
-  const handleJoin = async () => {
-    const userId = localStorage.getItem('userId');
-    const token = localStorage.getItem('token'); // Optional: if using JWT
+  const handleDelete = async () => {
+    if (!window.confirm('Are you sure you want to delete this event?')) return;
 
-    if (!userId) {
-      alert('Please log in to join this event.');
-      return;
+    try {
+      const res = await fetch(`${API_BASE}/events/${eventId}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const result = await res.json();
+      alert(result.message || 'Event deleted');
+      navigate('/dashboard/organizer');
+    } catch (err) {
+      console.error('Delete failed:', err);
     }
+  };
 
-    setJoining(true);
-
+  const handleJoin = async () => {
     try {
       const res = await fetch(`${API_BASE}/events/${eventId}/signups`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          // 'Authorization': `Bearer ${token}` // Uncomment if using JWT
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ userId }),
+        body: JSON.stringify({ userId: user._id }),
       });
-
       const result = await res.json();
-
-      if (!res.ok) throw new Error(result.error || 'Signup failed');
-      alert(result.message || 'Successfully signed up!');
+      alert(result.message || 'Successfully joined!');
     } catch (err) {
-      console.error('Signup error:', err);
-      alert(err.message);
-    } finally {
-      setJoining(false);
+      console.error('Join failed:', err);
     }
   };
 
   if (loading) return <div className="p-4">Loading event...</div>;
   if (!event) return <div className="p-4 text-red-600">Event not found.</div>;
 
-  return (
-    <div className="p-6 max-w-3xl mx-auto bg-white shadow rounded">
-      <h1 className="text-2xl font-bold mb-2">{event.title}</h1>
-      <p className="mb-2">{event.description}</p>
-      <p className="text-sm text-gray-500">📅 {new Date(event.date).toLocaleDateString()}</p>
+  // ✅ Organizer check — handles both populated and raw ID
+  const isOrganizer =
+    user?.role === 'organizer' &&
+    event?.organizer &&
+    (user._id === event.organizer._id || user._id === event.organizer);
 
-      <button
-        onClick={handleJoin}
-        disabled={joining}
-        className={`mt-4 px-4 py-2 rounded text-white ${
-          joining ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
-        }`}
-      >
-        {joining ? 'Joining...' : 'Join Event'}
-      </button>
+  // 🧪 Debug output (optional)
+  console.log('User ID:', user._id);
+  console.log('Event Organizer:', event.organizer);
+  console.log('isOrganizer:', isOrganizer);
+
+  return (
+    <div className="max-w-3xl mx-auto p-6 bg-white rounded shadow">
+      <h1 className="text-2xl font-bold text-blue-700 mb-2">{event.title}</h1>
+      <p className="text-gray-600 mb-2">
+        📅 {new Date(event.date).toLocaleDateString()} • 📍 {event.location}
+      </p>
+      <p className="mb-4 text-gray-800">{event.description}</p>
+
+      {/* Optional: Show organizer name */}
+      {event.organizer?.name && (
+        <p className="text-sm text-gray-500 mb-4">
+          Organized by: {event.organizer.name}
+        </p>
+      )}
+
+      {isOrganizer ? (
+        <div className="flex gap-4 mt-4">
+          <Link
+            to={`/events/edit/${event._id}`}
+            className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600"
+          >
+            ✏️ Edit Event
+          </Link>
+          <button
+            onClick={handleDelete}
+            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+          >
+            🗑️ Delete Event
+          </button>
+        </div>
+      ) : (
+        <button
+          onClick={handleJoin}
+          className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 mt-4"
+        >
+          ✅ Join Event
+        </button>
+      )}
+      <p className="text-sm text-gray-500">
+  Organizer ID: {event.organizer?._id || event.organizer}
+</p>
+<p className="text-sm text-gray-500">
+  Your ID: {user._id}
+</p>
+
     </div>
   );
-};
-
-export default EventPage;
+}

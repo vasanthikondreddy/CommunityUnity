@@ -1,50 +1,65 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
-export default function EditEventForm() {
+const EditEventForm = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({ title: '', description: '', date: '', location: '' });
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    date: '',
+    location: '',
+  });
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_BASE_URL}/events/${id}`)
-      .then(res => res.json())
-      .then(data => setFormData(data.data));
+    axios.get(`/api/events/${id}`)
+      .then(res => {
+        const event = res.data.data;
+        setFormData({
+          title: event.title,
+          description: event.description,
+          date: event.date.slice(0, 10),
+          location: event.location,
+        });
+      })
+      .catch(err => console.error('Error loading event:', err));
   }, [id]);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem('token');
-
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/events/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(formData),
-      });
-      const result = await res.json();
-      alert(result.message || 'Event updated');
-      navigate('/dashboard/organizer');
+      await axios.put(`/api/events/${id}`, formData);
+      alert('Event updated successfully');
+      navigate('/dashboard'); // or wherever you want to redirect
     } catch (err) {
-      console.error('Update failed:', err);
+      console.error('Update error:', err);
+      alert('Failed to update event');
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-md mx-auto mt-10 space-y-4 p-4 bg-white shadow rounded">
-      <h2 className="text-xl font-bold text-blue-600">Edit Event</h2>
-      <input name="title" value={formData.title} onChange={handleChange} className="border p-2 w-full" />
-      <textarea name="description" value={formData.description} onChange={handleChange} className="border p-2 w-full" />
-      <input type="date" name="date" value={formData.date} onChange={handleChange} className="border p-2 w-full" />
-      <input name="location" value={formData.location} onChange={handleChange} className="border p-2 w-full" />
-      <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded">Update Event</button>
+    <form onSubmit={handleSubmit} className="edit-event-form">
+      <h2>Edit Event</h2>
+      <label>Title</label>
+      <input name="title" value={formData.title} onChange={handleChange} required />
+
+      <label>Description</label>
+      <textarea name="description" value={formData.description} onChange={handleChange} required />
+
+      <label>Date</label>
+      <input type="date" name="date" value={formData.date} onChange={handleChange} required />
+
+      <label>Location</label>
+      <input name="location" value={formData.location} onChange={handleChange} required />
+
+      <button type="submit" className="btn btn-save">💾 Save Changes</button>
     </form>
   );
-}
+};
+
+export default EditEventForm;
