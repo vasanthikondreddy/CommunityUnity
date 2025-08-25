@@ -31,7 +31,7 @@ const eventRoutes = require("./routes/eventRoutes");
 const volunteerRoutes = require("./routes/volunteerRoutes");
 
 app.use("/api/auth", authRoutes);
-app.use("/api/events", eventRoutes);
+app.use("/api", eventRoutes);
 app.use("/api/volunteers", volunteerRoutes);
 
 io.on("connection", (socket) => {

@@ -1,6 +1,6 @@
 const express = require('express');
-const upload = require('../middlewares/upload');
 const mongoose = require('mongoose');
+const upload = require('../middlewares/upload');
 const Event = require('../models/Event');
 const EventSignup = require('../models/EventSignup');
 const EventFile = require('../models/EventFile');
@@ -13,41 +13,10 @@ const {
 
 const router = express.Router();
 
-// 🛠️ Create Event (with optional file)
-router.post('/', upload.single('file'), async (req, res) => {
-  try {
-    const { title, description, date, location, organizer } = req.body;
+// ✅ Create event with file upload
+router.post('/events', upload.single('file'), createEvent);
 
-    if (!title || !description || !date || !location || !organizer) {
-      return res.status(400).json({ success: false, error: 'Missing required fields' });
-    }
-
-    let fileData = null;
-    if (req.file && req.file.originalname && req.file.filename) {
-      fileData = {
-        file_name: req.file.originalname,
-        file_url: `/uploads/${req.file.filename}`,
-      };
-    }
-
-    const event = new Event({
-      title,
-      description,
-      date,
-      location,
-      organizer,
-      ...(fileData && { file: fileData }),
-    });
-
-    await event.save();
-    res.status(201).json({ success: true, data: event, message: 'Event created successfully' });
-  } catch (err) {
-    console.error('🔥 Event creation error:', err.stack);
-    res.status(500).json({ success: false, error: 'Failed to create event' });
-  }
-});
-
-// 📅 Get All Events
+// ✅ Get all events
 router.get('/', async (req, res) => {
   try {
     const events = await Event.find().sort({ date: 1 });
@@ -57,7 +26,8 @@ router.get('/', async (req, res) => {
     res.status(500).json({ success: false, error: 'Failed to fetch events' });
   }
 });
-// 👥 Get Participants for an Event
+
+// ✅ Get participants for an event
 router.get('/:eventId/participants', async (req, res) => {
   const { eventId } = req.params;
 
@@ -67,7 +37,7 @@ router.get('/:eventId/participants', async (req, res) => {
 
   try {
     const signups = await EventSignup.find({ eventId }).populate('userId', 'name email');
-    const participants = signups.map(s => s.userId); // Extract user info
+    const participants = signups.map(s => s.userId);
     res.status(200).json({ success: true, data: participants });
   } catch (err) {
     console.error('Participant fetch error:', err);
@@ -75,10 +45,10 @@ router.get('/:eventId/participants', async (req, res) => {
   }
 });
 
-// 👤 Get Events by User Signup
+// ✅ Get events by user
 router.get('/user/:userId', getEventsByUser);
 
-// 📝 Get Events Created by Organizer
+// ✅ Get events created by a user
 router.get('/created/:userId', async (req, res) => {
   const { userId } = req.params;
 
@@ -99,7 +69,7 @@ router.get('/created/:userId', async (req, res) => {
   }
 });
 
-// 🔍 Get Single Event by ID
+// ✅ Get single event by ID
 router.get('/:eventId', async (req, res) => {
   const { eventId } = req.params;
 
@@ -121,31 +91,7 @@ router.get('/:eventId', async (req, res) => {
   }
 });
 
-// 📎 Upload Additional File to Event
-router.post('/:eventId/files', upload.single('file'), async (req, res) => {
-  try {
-    const { eventId } = req.params;
-    const file = req.file;
-
-    if (!file) {
-      return res.status(400).json({ success: false, error: 'No file uploaded' });
-    }
-
-    const eventFile = new EventFile({
-      eventId,
-      file_name: file.originalname,
-      file_url: `/uploads/${file.filename}`,
-    });
-
-    await eventFile.save();
-    res.status(201).json({ success: true, data: eventFile });
-  } catch (err) {
-    console.error('File upload error:', err);
-    res.status(500).json({ success: false, error: 'Failed to upload file' });
-  }
-});
-
-// 📂 Get Files for an Event
+// ✅ Get files for an event
 router.get('/:eventId/files', async (req, res) => {
   try {
     const files = await EventFile.find({ eventId: req.params.eventId });
@@ -156,7 +102,7 @@ router.get('/:eventId/files', async (req, res) => {
   }
 });
 
-// ✏️ Update Event
+// ✅ Update an event
 router.put('/:eventId', async (req, res) => {
   const { eventId } = req.params;
   const updates = req.body;
@@ -182,7 +128,7 @@ router.put('/:eventId', async (req, res) => {
   }
 });
 
-// 🗑️ Delete Event and Related Data
+// ✅ Delete an event
 router.delete('/:eventId', async (req, res) => {
   const { eventId } = req.params;
 
@@ -207,7 +153,7 @@ router.delete('/:eventId', async (req, res) => {
   }
 });
 
-// ✅ Signup for Event
+// ✅ Sign up for an event
 router.post('/:eventId/signups', async (req, res) => {
   const { eventId } = req.params;
   const { userId } = req.body;

@@ -35,6 +35,14 @@ const EventList = ({ events, onDelete }) => {
           Go to Event Creation
         </Link>
       </p>
+      
+      <p className="mt-2 text-center text-sm text-gray-600">
+        Just browsing?{' '}
+        <Link to="/" className="text-purple-600 hover:underline font-medium">
+          Go to Home
+        </Link>
+      </p>
+   
     </div>
   );
 };

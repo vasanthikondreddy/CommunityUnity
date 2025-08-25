@@ -57,7 +57,7 @@ function App() {
 
 <Route path="/event/:eventId/participants" element={<ParticipantList />} />
 
-        {/* Dashboard now wraps redirect logic */}
+
         <Route path="/dashboard" element={<Dashboard><DashboardRedirect /></Dashboard>} />
 <Route path="/user-dashboard" element={<UserDashboard />} />
 
@@ -65,11 +65,10 @@ function App() {
         <Route path="/my-events" element={<MyEvents />} />
         <Route path="/create-event" element={<CreateEvent socket={socket} />} />
 
-        {/* Consider removing this if EventList isn't meant to handle dynamic ID */}
+  
        <Route path="/event-list" element={<Events socket={socket} />} />
 
 
-        {/* Pass socket to EventPage if you want real-time updates */}
         <Route path="/event/:eventId" element={<EventPage socket={socket} />} />
 
      <Route path="/edit-event/:id" element={<EditEventForm />} />

@@ -1,4 +1,4 @@
-// src/pages/Events.jsx
+
 import React, { useEffect, useState } from 'react';
 import EventList from './EventList.jsx';
 
@@ -20,7 +20,6 @@ const Events = ({ socket }) => {
         const response = await fetch(`${API_BASE}/events`);
         const result = await response.json();
 
-        // ✅ Access result.data instead of result
         if (response.ok && Array.isArray(result.data)) {
           setEvents(result.data);
           setFilteredEvents(result.data);
@@ -39,7 +38,6 @@ const Events = ({ socket }) => {
     fetchEvents();
   }, []);
 
-  // ✅ Listen for new events via socket
   useEffect(() => {
     if (!socket) return;
 

@@ -43,21 +43,22 @@ const EditEventForm = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="edit-event-form">
-      <h2>Edit Event</h2>
-      <label>Title</label>
-      <input name="title" value={formData.title} onChange={handleChange} required />
+    <form onSubmit={handleSubmit} className="max-w-md mx-auto p-4 bg-white rounded shadow">
+      <h2 className="text-xl font-bold mb-4">✏️ Edit Event</h2>
 
-      <label>Description</label>
-      <textarea name="description" value={formData.description} onChange={handleChange} required />
+      <label className="block mb-2">Title</label>
+      <input name="title" value={formData.title} onChange={handleChange} className="w-full mb-4 p-2 border rounded" required />
 
-      <label>Date</label>
-      <input type="date" name="date" value={formData.date} onChange={handleChange} required />
+      <label className="block mb-2">Description</label>
+      <textarea name="description" value={formData.description} onChange={handleChange} className="w-full mb-4 p-2 border rounded" required />
 
-      <label>Location</label>
-      <input name="location" value={formData.location} onChange={handleChange} required />
+      <label className="block mb-2">Date</label>
+      <input type="date" name="date" value={formData.date} onChange={handleChange} className="w-full mb-4 p-2 border rounded" required />
 
-      <button type="submit" className="btn btn-save">💾 Save Changes</button>
+      <label className="block mb-2">Location</label>
+      <input name="location" value={formData.location} onChange={handleChange} className="w-full mb-4 p-2 border rounded" required />
+
+      <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">💾 Save Changes</button>
     </form>
   );
 };
