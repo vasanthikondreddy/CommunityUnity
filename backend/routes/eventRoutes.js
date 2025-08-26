@@ -13,10 +13,10 @@ const {
 
 const router = express.Router();
 
-// ✅ Create event with file upload
+
 router.post('/events', upload.single('file'), createEvent);
 
-// ✅ Get all events
+
 router.get('/', async (req, res) => {
   try {
     const events = await Event.find().sort({ date: 1 });
@@ -27,7 +27,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-// ✅ Get participants for an event
+
 router.get('/:eventId/participants', async (req, res) => {
   const { eventId } = req.params;
 
@@ -45,10 +45,10 @@ router.get('/:eventId/participants', async (req, res) => {
   }
 });
 
-// ✅ Get events by user
+
 router.get('/user/:userId', getEventsByUser);
 
-// ✅ Get events created by a user
+
 router.get('/created/:userId', async (req, res) => {
   const { userId } = req.params;
 

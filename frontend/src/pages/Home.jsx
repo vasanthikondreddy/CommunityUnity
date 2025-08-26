@@ -7,7 +7,7 @@ export default function Home() {
     <>
       <Navbar />
       <main className="min-h-screen w-full bg-gradient-to-br from-green-50 to-blue-50 flex flex-col items-center py-12 px-4">
-        <section className="max-w-10xl w-full text-center">
+        <section className="max-w-7xl w-full text-center">
           <h1 className="text-5xl font-bold text-gray-800 mb-4">
             Welcome to <span className="text-green-700">CommunityUnity</span>
           </h1>
@@ -15,6 +15,7 @@ export default function Home() {
             Empowering volunteers and organizers to build stronger communities together.
           </p>
 
+          {/* 🔐 Auth Buttons */}
           <div className="flex justify-center flex-wrap gap-4 mb-8">
             <Link to="/login" className="bg-blue-600 text-white px-6 py-3 rounded hover:bg-blue-700 transition">
               Log In
@@ -27,6 +28,7 @@ export default function Home() {
             </Link>
           </div>
 
+          {/* 🌍 Discover Events */}
           <div className="bg-white p-8 rounded-lg shadow-md mb-12">
             <h2 className="text-3xl font-bold text-blue-800 mb-2">Discover Local Impact</h2>
             <p className="text-gray-700 mb-4">
@@ -80,6 +82,23 @@ export default function Home() {
                   Clean design with Tailwind CSS for a professional, official look.
                 </p>
               </div>
+            </div>
+          </section>
+
+          {/* 🚀 Dashboard Navigation Section */}
+          <section className="mt-20 text-center">
+            <h2 className="text-3xl font-bold text-gray-800 mb-4">🚀 Explore Dashboards</h2>
+            <p className="text-gray-600 mb-6">Choose your role to access the right tools:</p>
+            <div className="flex justify-center flex-wrap gap-4">
+              <Link to="/organizer" className="bg-yellow-500 text-white px-6 py-3 rounded hover:bg-yellow-600 transition">
+                🧑‍💼 Organizer Dashboard
+              </Link>
+              <Link to="/volunteer" className="bg-indigo-500 text-white px-6 py-3 rounded hover:bg-indigo-600 transition">
+                🧍 Volunteer Check-In
+              </Link>
+              <Link to="/announcements" className="bg-pink-500 text-white px-6 py-3 rounded hover:bg-pink-600 transition">
+                📣 Announcement Board
+              </Link>
             </div>
           </section>
         </section>

@@ -20,6 +20,8 @@ import EventForm from './components/Event/EventForm';
 import Profile from './pages/Profile';
 import UserDashboard from './pages/UserDashboard';
 import ParticipantList from './pages/ParticipantsList';
+import VolunteerCheckIn from './pages/VolunteerCheckIn';
+import AnnouncementBoard from './pages/AnnoucementDashboard';
 
 const socket = io('http://localhost:5000'); 
 
@@ -31,7 +33,7 @@ function App() {
 
     socket.on('newEvent', (eventData) => {
       console.log('📥 New event received:', eventData);
-      // You can add toast or state update here if needed
+      
     });
 
     socket.on('disconnect', () => {
@@ -55,31 +57,21 @@ function App() {
         <Route path="/signup" element={<Signup />} />
 
 
-<Route path="/event/:eventId/participants" element={<ParticipantList />} />
-
-
+        <Route path="/event/:eventId/participants" element={<ParticipantList />} />
         <Route path="/dashboard" element={<Dashboard><DashboardRedirect /></Dashboard>} />
-<Route path="/user-dashboard" element={<UserDashboard />} />
-
-        <Route path="/organizer-dashboard" element={<OrganizerDashboard />} />
+        <Route path="/user-dashboard" element={<UserDashboard />} />
         <Route path="/my-events" element={<MyEvents />} />
         <Route path="/create-event" element={<CreateEvent socket={socket} />} />
-
-  
-       <Route path="/event-list" element={<Events socket={socket} />} />
-
-
+        <Route path="/event-list" element={<Events socket={socket} />} />
         <Route path="/event/:eventId" element={<EventPage socket={socket} />} />
-
-     <Route path="/edit-event/:id" element={<EditEventForm />} />
-
-
-        {/* Consider removing one of these if duplicate */}
+        <Route path="/edit-event/:id" element={<EditEventForm />} />
         <Route path="/event-list" element={<EventList />} />
         <Route path="/create-event" element={<EventForm />} />
-
         <Route path="/profile" element={<Profile />} />
         <Route path="*" element={<div className="p-4 text-red-600">Page not found.</div>} />
+        <Route path="/organizer" element={<OrganizerDashboard />} />
+        <Route path="/volunteer" element={<VolunteerCheckIn />} />
+        <Route path="/announcements" element={<AnnouncementBoard />} />
       </Routes>
     </Router>
   );
