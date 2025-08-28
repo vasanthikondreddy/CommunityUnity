@@ -1,125 +1,106 @@
 import React, { useEffect, useState } from 'react';
-import toast from 'react-hot-toast';
 
-function VolunteerCheckIn() {
+const VolunteerCheckIn = () => {
   const [volunteers, setVolunteers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_BASE_URL}/volunteers`)
-      .then((res) => res.json())
-      .then((data) => {
-        setVolunteers(data.volunteers || []);
-        setLoading(false);
-      })
-      .catch((err) => {
+    const fetchVolunteers = async () => {
+      try {
+        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/volunteers`);
+        const data = await res.json();
+
+        const loaded = Array.isArray(data) ? data : data.volunteers || [];
+        setVolunteers(loaded);
+      } catch (err) {
         console.error('Error fetching volunteers:', err);
         setError('Failed to load volunteers');
+      } finally {
         setLoading(false);
-      });
+      }
+    };
+
+    fetchVolunteers();
   }, []);
 
   const handleCheckIn = async (volunteerId) => {
     try {
-      await fetch(`${import.meta.env.VITE_API_BASE_URL}/volunteers/${volunteerId}/checkin`, {
-        method: 'PUT',
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/volunteers/${volunteerId}/checkin`, {
+        method: 'PATCH',
       });
+      const updated = await res.json();
 
       setVolunteers((prev) =>
-        prev.map((v) =>
-          v._id === volunteerId ? { ...v, checkedIn: true } : v
-        )
+        prev.map((v) => (v._id === updated._id ? updated : v))
       );
-
-      toast.success('✅ Volunteer checked in!');
     } catch (err) {
       console.error('Check-in failed:', err);
-      toast.error('❌ Check-in failed. Please try again.');
     }
   };
 
   const filteredVolunteers = volunteers.filter((v) =>
-    v.name.toLowerCase().includes(searchTerm.toLowerCase())
+    (v.name || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const checkedInCount = volunteers.filter((v) => v.checkedIn).length;
+
   return (
-    <div style={styles.container}>
-      <h3 style={styles.heading}>✅ Volunteer Check-In</h3>
+    <div className="max-w-xl mx-auto p-6 bg-white shadow-lg rounded-lg">
+      <h2 className="text-2xl font-bold mb-2">✅ Volunteer Check-In</h2>
+      <p className="text-sm text-gray-600 mb-4">
+        {checkedInCount} of {volunteers.length} volunteers checked in
+      </p>
 
       <input
         type="text"
-        placeholder="🔍 Search volunteers..."
+        placeholder="Search by name..."
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
-        style={styles.search}
+        className="w-full px-4 py-2 border rounded-md mb-4 focus:outline-none focus:ring-2 focus:ring-blue-400"
       />
 
-      {loading && <p>⏳ Loading volunteers...</p>}
-      {error && <p style={{ color: 'red' }}>⚠️ {error}</p>}
+      {loading && <p className="text-gray-600">Loading volunteers...</p>}
+      {error && <p className="text-red-500">{error}</p>}
+      {!loading && filteredVolunteers.length === 0 && (
+        <p className="text-gray-500 italic">No volunteers found 😕</p>
+      )}
 
-      <ul style={styles.list}>
+      <ul className="space-y-3">
         {filteredVolunteers.map((v) => (
-          <li key={v._id} style={styles.item}>
-            <span>{v.name}</span>
-            {v.checkedIn ? (
-              <span style={styles.status}>✅ Checked In</span>
-            ) : (
-              <button onClick={() => handleCheckIn(v._id)} style={styles.button}>
-                Check In
-              </button>
-            )}
+          <li
+            key={v._id}
+            className="border p-4 rounded-md flex justify-between items-center hover:bg-gray-50 transition"
+          >
+            <div>
+              <span className="font-semibold">{v.name}</span>
+              <div className="text-sm text-gray-500">{v.email}</div>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <span
+                className={`text-sm px-2 py-1 rounded ${
+                  v.checkedIn ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+                }`}
+              >
+                {v.checkedIn ? 'Checked In ✅' : 'Not Checked In ⏳'}
+              </span>
+
+              {!v.checkedIn && (
+                <button
+                  onClick={() => handleCheckIn(v._id)}
+                  className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
+                >
+                  Check In
+                </button>
+              )}
+            </div>
           </li>
         ))}
       </ul>
     </div>
   );
-}
-
-const styles = {
-  container: {
-    padding: '1.5rem',
-    backgroundColor: '#fefefe',
-    borderRadius: '8px',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-  },
-  heading: {
-    fontSize: '1.5rem',
-    marginBottom: '1rem',
-    color: '#333',
-  },
-  search: {
-    padding: '0.5rem',
-    marginBottom: '1rem',
-    width: '100%',
-    borderRadius: '4px',
-    border: '1px solid #ccc',
-    fontSize: '1rem',
-  },
-  list: {
-    listStyle: 'none',
-    padding: 0,
-  },
-  item: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: '0.75rem 0',
-    borderBottom: '1px solid #eee',
-  },
-  button: {
-    padding: '0.4rem 0.8rem',
-    backgroundColor: '#28a745',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '4px',
-    cursor: 'pointer',
-  },
-  status: {
-    color: '#28a745',
-    fontWeight: 'bold',
-  },
 };
 
 export default VolunteerCheckIn;

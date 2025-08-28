@@ -1,75 +1,59 @@
-import React, { useEffect } from 'react';
-import AnnouncementBoard from './AnnoucementDashboard';
-import VolunteerCheckIn from './VolunteerCheckIn';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
-function OrganizerDashboard({ user }) {
+const OrganizerDashboard = ({ user }) => {
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (user && user.role !== 'organizer') {
-      navigate('/');
-    }
-  }, [user, navigate]);
-
-  if (!user) {
-    return (
-      <div style={styles.loadingContainer}>
-        <h2 style={styles.heading}>🔄 Loading Organizer Dashboard...</h2>
-        <p style={styles.subheading}>Please wait while we verify your access.</p>
-      </div>
-    );
-  }
+  const handleNavigation = (path) => {
+    navigate(path);
+    toast.info(`Navigated to ${path}`, { autoClose: 2000 });
+  };
 
   return (
-    <div style={styles.container}>
-      <h2 style={styles.heading}>🛠️ Organizer Dashboard</h2>
-      <p style={styles.subheading}>
-        Welcome, <strong>{user.name || 'Organizer'}</strong>! Manage your announcements and volunteer check-ins below.
-      </p>
+    <div className="min-h-screen bg-gray-50 p-6">
+      <ToastContainer position="top-right" />
+      <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-lg p-6">
+        <h1 className="text-3xl font-bold text-gray-800 mb-4">
+          🎯 Welcome, {user?.name || 'Organizer'}!
+        </h1>
+        <p className="text-gray-600 mb-6">
+          Manage your announcements, events, and community updates from here.
+        </p>
 
-      <section style={styles.section}>
-        <AnnouncementBoard />
-      </section>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <button
+            onClick={() => handleNavigation('/announcements')}
+            className="bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-lg shadow-md transition"
+          >
+            📢 Manage Announcements
+          </button>
 
-      <section style={styles.section}>
-        <VolunteerCheckIn />
-      </section>
+          <button
+            onClick={() => handleNavigation('/events')}
+            className="bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-lg shadow-md transition"
+          >
+            📅 Manage Events
+          </button>
+
+          <button
+            onClick={() => handleNavigation('/volunteers')}
+            className="bg-purple-500 hover:bg-purple-600 text-white py-3 px-4 rounded-lg shadow-md transition"
+          >
+            🙋‍♀️ View Volunteers
+          </button>
+
+          <button
+            onClick={() => handleNavigation('/reports')}
+            className="bg-yellow-500 hover:bg-yellow-600 text-white py-3 px-4 rounded-lg shadow-md transition"
+          >
+            📊 View Reports
+          </button>
+        </div>
+      </div>
     </div>
   );
-}
-
-const styles = {
-  container: {
-    maxWidth: '900px',
-    margin: '2rem auto',
-    padding: '2rem',
-    backgroundColor: '#fdfdfd',
-    borderRadius: '10px',
-    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-  },
-  loadingContainer: {
-    maxWidth: '600px',
-    margin: '4rem auto',
-    padding: '2rem',
-    textAlign: 'center',
-    backgroundColor: '#fffbe6',
-    borderRadius: '10px',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-  },
-  heading: {
-    fontSize: '2rem',
-    marginBottom: '0.5rem',
-    color: '#333',
-  },
-  subheading: {
-    fontSize: '1rem',
-    marginBottom: '2rem',
-    color: '#666',
-  },
-  section: {
-    marginBottom: '2rem',
-  },
 };
 
 export default OrganizerDashboard;

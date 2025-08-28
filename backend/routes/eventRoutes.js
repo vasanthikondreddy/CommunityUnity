@@ -4,6 +4,8 @@ const upload = require('../middlewares/upload');
 const Event = require('../models/Event');
 const EventSignup = require('../models/EventSignup');
 const EventFile = require('../models/EventFile');
+
+const User = require('../models/User'); 
 const {
   createEvent,
   getAllEvents,
@@ -69,7 +71,7 @@ router.get('/created/:userId', async (req, res) => {
   }
 });
 
-// ✅ Get single event by ID
+
 router.get('/:eventId', async (req, res) => {
   const { eventId } = req.params;
 
@@ -91,7 +93,7 @@ router.get('/:eventId', async (req, res) => {
   }
 });
 
-// ✅ Get files for an event
+
 router.get('/:eventId/files', async (req, res) => {
   try {
     const files = await EventFile.find({ eventId: req.params.eventId });
@@ -101,7 +103,41 @@ router.get('/:eventId/files', async (req, res) => {
     res.status(500).json({ success: false, error: 'Failed to fetch files' });
   }
 });
+// GET /volunteers
+router.get('/volunteers', async (req, res) => {
+  try {
+    const volunteers = await User.find({ role: 'volunteer' }); // Assuming User model
+    res.json({ volunteers });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch volunteers' });
+  }
+});
 
+
+router.patch('/volunteers/:id/checkin', async (req, res) => {
+  const { id } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ error: 'Invalid volunteer ID format' });
+  }
+
+  try {
+    const updated = await User.findByIdAndUpdate(
+      id,
+      { checkedIn: true },
+      { new: true }
+    );
+
+    if (!updated) {
+      return res.status(404).json({ error: 'Volunteer not found' });
+    }
+
+    res.status(200).json(updated);
+  } catch (err) {
+    console.error('Check-in error:', err);
+    res.status(500).json({ error: 'Failed to check in volunteer' });
+  }
+});
 // ✅ Update an event
 router.put('/:eventId', async (req, res) => {
   const { eventId } = req.params;

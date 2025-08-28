@@ -57,6 +57,7 @@ export default function Signup() {
         <option value="member">Member</option>
         <option value="organizer">Organizer</option>
         <option value="admin">Admin</option>
+        <option value="volunteer">Volunteer</option>
       </select>
 
       <select name="availability" defaultValue="" required className="w-full mb-4 p-2 border rounded">

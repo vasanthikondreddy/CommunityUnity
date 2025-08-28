@@ -1,115 +1,91 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 import io from 'socket.io-client';
-import toast from 'react-hot-toast';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
-const socket = io(import.meta.env.VITE_API_BASE_URL, {
-  transports: ['websocket'],
-});
+const socket = io(import.meta.env.VITE_BACKEND_URL);
 
-function AnnouncementBoard() {
-  const [announcement, setAnnouncement] = useState('');
+const AnnouncementDashboard = () => {
   const [announcements, setAnnouncements] = useState([]);
+  const [form, setForm] = useState({ title: '', message: '' });
+  const [editingId, setEditingId] = useState(null);
+
+  const fetchAnnouncements = async () => {
+    try {
+      const res = await axios.get('/api/announcements');
+      setAnnouncements(res.data);
+    } catch (err) {
+      toast.error('Failed to load announcements');
+    }
+  };
 
   useEffect(() => {
-    socket.on('newAnnouncement', (msg) => {
-      const time = new Date().toLocaleTimeString();
-      setAnnouncements((prev) => [{ msg, time }, ...prev]);
-
-      toast(`📢 ${msg}`, {
-        icon: '📣',
-        style: {
-          borderRadius: '8px',
-          background: '#222',
-          color: '#fff',
-        },
-      });
-    });
-
+    fetchAnnouncements();
+    socket.on('newAnnouncement', fetchAnnouncements);
     return () => socket.off('newAnnouncement');
   }, []);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!announcement.trim()) return;
-
-    socket.emit('postAnnouncement', announcement.trim());
-    setAnnouncement('');
+    try {
+      if (editingId) {
+        await axios.put(`/api/announcements/${editingId}`, form);
+        toast.success('Announcement updated');
+      } else {
+        await axios.post('/api/announcements', form);
+        toast.success('Announcement posted');
+      }
+      socket.emit('newAnnouncement');
+      setForm({ title: '', message: '' });
+      setEditingId(null);
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to post announcement');
+    }
   };
 
   return (
-    <div style={styles.container}>
-      <h3 style={styles.heading}>📣 Announcement Board</h3>
-      <form onSubmit={handleSubmit} style={styles.form}>
+    <div className="p-6 max-w-3xl mx-auto">
+      <ToastContainer position="top-right" autoClose={3000} />
+      <h2 className="text-2xl font-bold mb-4">📢 Live Announcements</h2>
+
+      <form onSubmit={handleSubmit} className="mb-6 space-y-2">
         <input
           type="text"
-          value={announcement}
-          onChange={(e) => setAnnouncement(e.target.value)}
-          placeholder="Type your announcement..."
-          style={styles.input}
+          placeholder="📌 Title"
+          value={form.title}
+          onChange={(e) => setForm({ ...form, title: e.target.value })}
+          className="w-full p-2 border rounded"
+          required
         />
-        <button type="submit" style={styles.button}>📤 Post</button>
+        <textarea
+          placeholder="📝 Message"
+          value={form.message}
+          onChange={(e) => setForm({ ...form, message: e.target.value })}
+          className="w-full p-2 border rounded"
+          required
+        />
+        <button
+          type="submit"
+          className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+        >
+          {editingId ? 'Update Announcement ✏️' : 'Send Announcement 🚀'}
+        </button>
       </form>
 
-      <ul style={styles.list}>
-        {announcements.map(({ msg, time }, idx) => (
-          <li key={idx} style={styles.item}>
-            <span>🗨️ {msg}</span>
-            <span style={styles.timestamp}>{time}</span>
-          </li>
+      <div className="space-y-4">
+        {announcements.map((a) => (
+          <div key={a._id} className="bg-white shadow-md p-4 rounded-md">
+            <h3 className="text-lg font-bold">📌 {a.title}</h3>
+            <p className="text-gray-700">{a.message}</p>
+            <p className="text-xs text-gray-500 mt-1">
+              Sent at: {new Date(a.createdAt).toLocaleString()}
+            </p>
+          </div>
         ))}
-      </ul>
+      </div>
     </div>
   );
-}
-
-const styles = {
-  container: {
-    padding: '1.5rem',
-    backgroundColor: '#fefefe',
-    borderRadius: '8px',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-  },
-  heading: {
-    fontSize: '1.5rem',
-    marginBottom: '1rem',
-    color: '#333',
-  },
-  form: {
-    display: 'flex',
-    gap: '0.5rem',
-    marginBottom: '1rem',
-  },
-  input: {
-    flex: 1,
-    padding: '0.75rem',
-    borderRadius: '4px',
-    border: '1px solid #ccc',
-    fontSize: '1rem',
-  },
-  button: {
-    padding: '0.75rem 1rem',
-    backgroundColor: '#007bff',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '4px',
-    cursor: 'pointer',
-  },
-  list: {
-    listStyle: 'none',
-    padding: 0,
-  },
-  item: {
-    padding: '0.5rem 0',
-    borderBottom: '1px solid #eee',
-    fontSize: '1rem',
-    color: '#444',
-    display: 'flex',
-    justifyContent: 'space-between',
-  },
-  timestamp: {
-    fontSize: '0.85rem',
-    color: '#888',
-  },
 };
 
-export default AnnouncementBoard;
+export default AnnouncementDashboard;

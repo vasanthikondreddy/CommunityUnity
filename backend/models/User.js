@@ -1,4 +1,3 @@
-
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
@@ -8,9 +7,17 @@ const userSchema = new mongoose.Schema({
   phone: String,
   location: String,
   interests: [String],
-  role: { type: String, enum: ['member', 'organizer', 'admin'], default: 'member' },
+  role: {
+    type: String,
+    enum: ['member', 'organizer', 'admin', 'volunteer'],
+    default: 'member',
+  },
   availability: String,
+
+  checkedIn: {
+    type: Boolean,
+    default: false,
+  },
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', userSchema);
-

@@ -22,7 +22,8 @@ import UserDashboard from './pages/UserDashboard';
 import ParticipantList from './pages/ParticipantsList';
 import VolunteerCheckIn from './pages/VolunteerCheckIn';
 import AnnouncementBoard from './pages/AnnoucementDashboard';
-
+import VolunteersPage from './pages/VolunteersPage';
+import ReportsPage from './pages/ReportsPage';
 const socket = io('http://localhost:5000'); 
 
 function App() {
@@ -72,6 +73,8 @@ function App() {
         <Route path="/organizer" element={<OrganizerDashboard />} />
         <Route path="/volunteer" element={<VolunteerCheckIn />} />
         <Route path="/announcements" element={<AnnouncementBoard />} />
+        <Route path="/volunteers" element={<VolunteersPage />} />
+        <Route path="/reports" element={<ReportsPage />} />
       </Routes>
     </Router>
   );
