@@ -103,7 +103,7 @@ router.get('/:eventId/files', async (req, res) => {
     res.status(500).json({ success: false, error: 'Failed to fetch files' });
   }
 });
-// GET /volunteers
+
 router.get('/volunteers', async (req, res) => {
   try {
     const volunteers = await User.find({ role: 'volunteer' }); // Assuming User model
@@ -138,7 +138,7 @@ router.patch('/volunteers/:id/checkin', async (req, res) => {
     res.status(500).json({ error: 'Failed to check in volunteer' });
   }
 });
-// ✅ Update an event
+
 router.put('/:eventId', async (req, res) => {
   const { eventId } = req.params;
   const updates = req.body;
@@ -164,7 +164,6 @@ router.put('/:eventId', async (req, res) => {
   }
 });
 
-// ✅ Delete an event
 router.delete('/:eventId', async (req, res) => {
   const { eventId } = req.params;
 
@@ -189,7 +188,7 @@ router.delete('/:eventId', async (req, res) => {
   }
 });
 
-// ✅ Sign up for an event
+
 router.post('/:eventId/signups', async (req, res) => {
   const { eventId } = req.params;
   const { userId } = req.body;
