@@ -18,7 +18,7 @@ export default function EventPage() {
       try {
         const res = await fetch(`${API_BASE}/events/${eventId}`);
         const data = await res.json();
-        setEvent(data.data || data); // Adjust if wrapped in { success, data }
+        setEvent(data.data || data); 
       } catch (err) {
         console.error('Error fetching event:', err);
       } finally {
@@ -67,13 +67,13 @@ export default function EventPage() {
   if (loading) return <div className="p-4">Loading event...</div>;
   if (!event) return <div className="p-4 text-red-600">Event not found.</div>;
 
-  // ✅ Organizer check — handles both populated and raw ID
+
   const isOrganizer =
     user?.role === 'organizer' &&
     event?.organizer &&
     (user._id === event.organizer._id || user._id === event.organizer);
 
-  // 🧪 Debug output (optional)
+ 
   console.log('User ID:', user._id);
   console.log('Event Organizer:', event.organizer);
   console.log('isOrganizer:', isOrganizer);
@@ -86,7 +86,7 @@ export default function EventPage() {
       </p>
       <p className="mb-4 text-gray-800">{event.description}</p>
 
-      {/* Optional: Show organizer name */}
+     
       {event.organizer?.name && (
         <p className="text-sm text-gray-500 mb-4">
           Organized by: {event.organizer.name}

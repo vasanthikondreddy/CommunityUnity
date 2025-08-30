@@ -16,7 +16,7 @@ const {
 const router = express.Router();
 
 
-router.post('/events', upload.single('file'), createEvent);
+router.post('/', upload.single('file'), createEvent);
 
 
 router.get('/', async (req, res) => {

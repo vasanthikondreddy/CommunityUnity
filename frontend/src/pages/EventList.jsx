@@ -5,7 +5,7 @@ import EventCard from '../components/Event/EventCard.jsx';
 const EventList = ({ events, onDelete }) => {
   const safeEvents = Array.isArray(events) ? events : [];
 
-  // ✅ Get user and role from localStorage
+ 
   const user = JSON.parse(localStorage.getItem('user')) || null;
   const userRole = localStorage.getItem('role');
 
@@ -22,7 +22,7 @@ const EventList = ({ events, onDelete }) => {
               key={event._id}
               event={event}
               userRole={userRole}
-              user={user} // ✅ Pass user object to EventCard
+              user={user} 
               onDelete={onDelete}
             />
           ))}

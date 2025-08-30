@@ -17,7 +17,7 @@ export default function Navbar() {
     <nav className="bg-blue-600 text-white p-4 flex justify-between items-center relative">
       <Link to="/" className="font-bold text-xl">CommunityUnity</Link>
 
-      {/* Desktop Menu */}
+     
       <div className="hidden md:flex space-x-4 items-center">
         <Link to="/events">Events</Link>
 
@@ -64,7 +64,6 @@ export default function Navbar() {
         )}
       </div>
 
-      {/* Mobile Menu Toggle */}
       <div className="md:hidden">
         <button onClick={() => setMobileOpen(!mobileOpen)} className="text-white text-2xl">
           ☰

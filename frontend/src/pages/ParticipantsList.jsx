@@ -12,7 +12,7 @@ export default function ParticipantList() {
     axios.get(`/api/events/${eventId}/participants`)
       .then(res => {
         if (res.data.success) {
-          setParticipants(res.data.data); // ✅ Access res.data.data
+          setParticipants(res.data.data); 
         } else {
           setError(res.data.error || 'Failed to load participants');
         }

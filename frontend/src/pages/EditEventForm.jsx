@@ -35,7 +35,7 @@ const EditEventForm = () => {
     try {
       await axios.put(`/api/events/${id}`, formData);
       alert('Event updated successfully');
-      navigate('/dashboard'); // or wherever you want to redirect
+      navigate('/dashboard'); 
     } catch (err) {
       console.error('Update error:', err);
       alert('Failed to update event');

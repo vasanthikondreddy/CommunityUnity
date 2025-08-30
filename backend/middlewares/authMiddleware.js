@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const JWT_SECRET = 'your_jwt_secret'; // Move to .env in production
+const JWT_SECRET = 'your_jwt_secret'; 
 
 exports.verifyToken = (req, res, next) => {
   const authHeader = req.headers.authorization;
@@ -11,7 +11,7 @@ exports.verifyToken = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    req.user = decoded; // contains _id, email, role
+    req.user = decoded;
     next();
   } catch (err) {
     res.status(403).json({ error: 'Invalid or expired token' });

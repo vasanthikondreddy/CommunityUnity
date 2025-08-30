@@ -6,7 +6,7 @@ export default function EventCard({ event, userRole, onDelete }) {
   const user = JSON.parse(localStorage.getItem('user')) || null;
   const token = localStorage.getItem('token');
 
-  // Check if user is organizer and owns the event
+
   const isOwner =
     userRole === 'organizer' &&
     (user?._id === event.organizer || user?._id === event.organizer?._id);
@@ -23,7 +23,7 @@ export default function EventCard({ event, userRole, onDelete }) {
 
       const result = await res.json();
       alert(result.message || 'Event deleted');
-      onDelete?.(event._id); // Notify parent to remove from list
+      onDelete?.(event._id); 
     } catch (err) {
       console.error('Delete failed:', err);
       alert('Failed to delete event.');

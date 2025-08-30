@@ -15,7 +15,7 @@ export default function Home() {
             Empowering volunteers and organizers to build stronger communities together.
           </p>
 
-          {/* 🔐 Auth Buttons */}
+    
           <div className="flex justify-center flex-wrap gap-4 mb-8">
             <Link to="/login" className="bg-blue-600 text-white px-6 py-3 rounded hover:bg-blue-700 transition">
               Log In
@@ -28,7 +28,7 @@ export default function Home() {
             </Link>
           </div>
 
-          {/* 🌍 Discover Events */}
+       
           <div className="bg-white p-8 rounded-lg shadow-md mb-12">
             <h2 className="text-3xl font-bold text-blue-800 mb-2">Discover Local Impact</h2>
             <p className="text-gray-700 mb-4">
@@ -42,7 +42,7 @@ export default function Home() {
             </Link>
           </div>
 
-          {/* 🌟 Feature Highlights */}
+
           <section className="mt-12">
             <h2 className="text-2xl font-bold text-gray-800 mb-6">Platform Highlights</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -85,7 +85,7 @@ export default function Home() {
             </div>
           </section>
 
-          {/* 🚀 Dashboard Navigation Section */}
+
           <section className="mt-20 text-center">
             <h2 className="text-3xl font-bold text-gray-800 mb-4">🚀 Explore Dashboards</h2>
             <p className="text-gray-600 mb-6">Choose your role to access the right tools:</p>

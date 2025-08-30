@@ -5,10 +5,10 @@ const {
   getAnnouncements,
 } = require('../controllers/announcementController');
 
-// POST new announcement
+
 router.post('/', createAnnouncement);
 
-// GET all announcements
+
 router.get('/', getAnnouncements);
 
 module.exports = router;
