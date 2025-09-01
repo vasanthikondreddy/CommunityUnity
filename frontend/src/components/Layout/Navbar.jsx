@@ -17,7 +17,7 @@ export default function Navbar() {
     <nav className="bg-blue-600 text-white p-4 flex justify-between items-center relative">
       <Link to="/" className="font-bold text-xl">CommunityUnity</Link>
 
-     
+      {/* Desktop Menu */}
       <div className="hidden md:flex space-x-4 items-center">
         <Link to="/events">Events</Link>
 
@@ -39,6 +39,10 @@ export default function Navbar() {
           <Link to="/dashboard/user">My Events</Link>
         )}
 
+        {user?.role === 'admin' && (
+          <Link to="/admin">Admin Dashboard</Link>
+        )}
+
         {user && (
           <div className="relative">
             <button
@@ -52,6 +56,7 @@ export default function Navbar() {
               />
               <span>{user.name}</span>
             </button>
+
             {menuOpen && (
               <div className="absolute right-0 mt-2 bg-white text-blue-600 rounded shadow-lg py-2 w-40 z-10">
                 <Link to="/profile" className="block px-4 py-2 hover:bg-blue-100">Profile</Link>
@@ -64,10 +69,12 @@ export default function Navbar() {
         )}
       </div>
 
+      {/* Mobile Menu */}
       <div className="md:hidden">
         <button onClick={() => setMobileOpen(!mobileOpen)} className="text-white text-2xl">
           ☰
         </button>
+
         {mobileOpen && (
           <div className="absolute top-16 right-4 bg-white text-blue-600 rounded shadow-lg py-2 w-48 z-10">
             <Link to="/events" className="block px-4 py-2 hover:bg-blue-100">Events</Link>
@@ -88,6 +95,10 @@ export default function Navbar() {
 
             {user?.role === 'user' && (
               <Link to="/dashboard/user" className="block px-4 py-2 hover:bg-blue-100">My Events</Link>
+            )}
+
+            {user?.role === 'admin' && (
+              <Link to="/admin" className="block px-4 py-2 hover:bg-blue-100">Admin Dashboard</Link>
             )}
 
             {user && (

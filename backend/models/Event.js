@@ -9,4 +9,5 @@ const eventSchema = new mongoose.Schema({
   fileUrl: String,
 });
 
+
 module.exports = mongoose.model('Event', eventSchema);

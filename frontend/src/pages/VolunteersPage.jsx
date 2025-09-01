@@ -3,6 +3,7 @@ import axios from 'axios';
 
 const VolunteersPage = () => {
   const [volunteers, setVolunteers] = useState([]);
+  const [checkedIn, setCheckedIn] = useState({});
 
   useEffect(() => {
     const fetchVolunteers = async () => {
@@ -13,27 +14,47 @@ const VolunteersPage = () => {
         console.error('Error fetching volunteers:', err);
       }
     };
+
     fetchVolunteers();
   }, []);
 
+  const handleCheckIn = async (volunteerId) => {
+    try {
+      const res = await axios.post('/api/volunteer/checkin', { volunteerId });
+      setCheckedIn((prev) => ({
+        ...prev,
+        [volunteerId]: res.data.checkedInAt,
+      }));
+    } catch (err) {
+      console.error('Check-in failed:', err);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-4xl mx-auto bg-white shadow-md rounded-lg p-6">
-        <h2 className="text-2xl font-bold mb-4">🙋‍♀️ Volunteers</h2>
-        {volunteers.length === 0 ? (
-          <p className="text-gray-500">No volunteers found.</p>
-        ) : (
-          <ul className="space-y-4">
-            {volunteers.map((v) => (
-              <li key={v._id} className="border p-4 rounded-md shadow-sm">
-                <h3 className="text-lg font-semibold">{v.name}</h3>
-                <p className="text-sm text-gray-600">Role: {v.role}</p>
-                <p className="text-sm text-gray-600">Email: {v.email}</p>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+    <div className="p-6">
+      <h2 className="text-xl font-bold mb-4">Volunteer Check-In</h2>
+      <ul className="space-y-3">
+        {volunteers.map((vol) => (
+          <li key={vol._id} className="flex justify-between items-center bg-gray-100 p-3 rounded">
+            <div>
+              <span className="font-medium">{vol.name}</span>
+              {checkedIn[vol._id] && (
+                <p className="text-xs text-green-600">
+                  Checked in at: {new Date(checkedIn[vol._id]).toLocaleTimeString()}
+                </p>
+              )}
+            </div>
+            {!checkedIn[vol._id] && (
+              <button
+                onClick={() => handleCheckIn(vol._id)}
+                className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
+              >
+                Check In
+              </button>
+            )}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 };
