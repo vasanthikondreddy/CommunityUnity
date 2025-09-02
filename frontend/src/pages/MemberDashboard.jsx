@@ -86,7 +86,7 @@ const MemberDashboard = () => {
         </button>
       </div>
 
-      {/* Event List */}
+     
       {loading ? (
         <p>Loading events...</p>
       ) : filteredEvents.length ? (

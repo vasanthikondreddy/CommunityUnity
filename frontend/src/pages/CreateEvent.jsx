@@ -59,7 +59,6 @@ function CreateEvent() {
       toast.success('🎉 Event created successfully!');
       console.log('Event created:', json);
 
-      // Optional: Reset form or redirect
       setFormData({
         title: '',
         description: '',

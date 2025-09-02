@@ -86,21 +86,25 @@ export default function Home() {
           </section>
 
 
-          <section className="mt-20 text-center">
-            <h2 className="text-3xl font-bold text-gray-800 mb-4">🚀 Explore Dashboards</h2>
-            <p className="text-gray-600 mb-6">Choose your role to access the right tools:</p>
-            <div className="flex justify-center flex-wrap gap-4">
-              <Link to="/organizer" className="bg-yellow-500 text-white px-6 py-3 rounded hover:bg-yellow-600 transition">
-                🧑‍💼 Organizer Dashboard
-              </Link>
-              <Link to="/volunteer" className="bg-indigo-500 text-white px-6 py-3 rounded hover:bg-indigo-600 transition">
-                🧍 Volunteer Check-In
-              </Link>
-              <Link to="/announcements" className="bg-pink-500 text-white px-6 py-3 rounded hover:bg-pink-600 transition">
-                📣 Announcement Board
-              </Link>
-            </div>
-          </section>
+<section className="mt-20 text-center">
+  <h2 className="text-3xl font-bold text-gray-800 mb-4">🚀 Explore Dashboards</h2>
+  <p className="text-gray-600 mb-6">Choose your role to access the right tools:</p>
+  <div className="flex justify-center flex-wrap gap-4">
+    <Link to="/organizer" className="bg-yellow-500 text-white px-6 py-3 rounded hover:bg-yellow-600 transition">
+      🧑‍💼 Organizer Dashboard
+    </Link>
+    <Link to="/volunteer" className="bg-indigo-500 text-white px-6 py-3 rounded hover:bg-indigo-600 transition">
+      🧍 Volunteer Check-In
+    </Link>
+    <Link to="/announcements" className="bg-pink-500 text-white px-6 py-3 rounded hover:bg-pink-600 transition">
+      📣 Announcement Board
+    </Link>
+    <Link to="/admin" className="bg-red-500 text-white px-6 py-3 rounded hover:bg-red-600 transition">
+      🛠️ Admin Dashboard
+    </Link>
+  </div>
+</section>
+
         </section>
       </main>
       <Footer />

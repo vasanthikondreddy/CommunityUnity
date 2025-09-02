@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-
 const userSchema = new mongoose.Schema({
   name: String,
   email: { type: String, unique: true },
@@ -13,11 +12,8 @@ const userSchema = new mongoose.Schema({
     default: 'member',
   },
   availability: String,
-
-  checkedIn: {
-    type: Boolean,
-    default: false,
-  },
+  checkedIn: { type: Boolean, default: false },
+  checkInTime: { type: Date, default: null }, // ✅ Add this line
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', userSchema);

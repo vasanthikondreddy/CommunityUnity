@@ -37,4 +37,20 @@ router.patch('/:id/checkin', async (req, res) => {
   }
 });
 
+router.patch('/:id/checkout', async (req, res) => {
+  try {
+    const updated = await User.findByIdAndUpdate(
+      req.params.id,
+      {
+        checkedIn: false,
+        checkInTime: null,
+      },
+      { new: true }
+    );
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ error: 'Check-out failed' });
+  }
+});
+
 module.exports = router;

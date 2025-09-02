@@ -9,8 +9,8 @@ import Events from './pages/Events';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
-import MyEvents from './pages/Events'; // Consider renaming this import to avoid confusion
-import EventList from './pages/EventList'; // If unused, you can remove later
+import MyEvents from './pages/Events'; 
+import EventList from './pages/EventList'; 
 import CreateEvent from './pages/CreateEvent';
 import EventPage from './pages/EventPage';
 import DashboardRedirect from './pages/DashboardRedirect';
@@ -25,7 +25,7 @@ import AnnouncementBoard from './pages/AnnoucementDashboard';
 import VolunteersPage from './pages/VolunteersPage';
 import ReportsPage from './pages/ReportsPage';
 import AdminDashboard from './pages/AdminDashboard';
-const socket = io('http://localhost:5000'); 
+const socket = io(import.meta.env.VITE_BACKEND_URL);
 
 function App() {
   useEffect(() => {
@@ -73,7 +73,7 @@ function App() {
         <Route path="*" element={<div className="p-4 text-red-600">Page not found.</div>} />
         <Route path="/organizer" element={<OrganizerDashboard />} />
         <Route path="/volunteer" element={<VolunteerCheckIn />} />
-        <Route path="/announcements" element={<AnnouncementBoard />} />
+        <Route path="/announcements" element={<AnnouncementBoard  socket={socket}/>} />
         <Route path="/volunteers" element={<VolunteersPage />} />
         <Route path="/reports" element={<ReportsPage />} />
       </Routes>

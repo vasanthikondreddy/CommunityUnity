@@ -7,7 +7,7 @@ const AdminDashboard = () => {
   useEffect(() => {
     const fetchVolunteers = async () => {
       try {
-        const response = await axios.get('/api/volunteers'); // Adjust route if needed
+        const response = await axios.get('/api/volunteers');
         setVolunteers(response.data);
       } catch (error) {
         console.error('Error fetching volunteers:', error);
@@ -17,25 +17,40 @@ const AdminDashboard = () => {
     fetchVolunteers();
   }, []);
 
-  const checkedIn = volunteers.filter((v) => v.checkedInAt);
-  const notCheckedIn = volunteers.filter((v) => !v.checkedInAt);
+  const checkedIn = volunteers
+    .filter((v) => v.checkInTime)
+    .sort((a, b) => new Date(b.checkInTime) - new Date(a.checkInTime));
+
+  const notCheckedIn = volunteers.filter((v) => !v.checkInTime);
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <h2 className="text-2xl font-bold mb-6 text-center">Admin Dashboard</h2>
+    <div className="max-w-5xl mx-auto p-6">
+      <h2 className="text-3xl font-bold mb-8 text-center text-gray-800">🌟 Admin Dashboard</h2>
 
-      {/* ✅ Checked-In Volunteers */}
-      <section className="mb-8">
-        <h3 className="text-xl font-semibold text-green-700 mb-2">✅ Checked-In Volunteers</h3>
-        <p className="text-sm text-gray-600 mb-2">Total: {checkedIn.length}</p>
+      {/* Checked-In Section */}
+      <section className="mb-10">
+        <h3 className="text-2xl font-semibold text-green-700 mb-3">✅ Checked-In Volunteers</h3>
+        <p className="text-sm text-gray-600 mb-4">Total: {checkedIn.length}</p>
         {checkedIn.length > 0 ? (
-          <ul className="space-y-2">
-            {checkedIn.map((vol) => (
-              <li key={vol._id} className="bg-green-100 p-3 rounded flex justify-between items-center">
-                <span>{vol.name}</span>
-                <span className="text-xs text-gray-600">
-                  {new Date(vol.checkedInAt).toLocaleTimeString()}
-                </span>
+          <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {checkedIn.map((vol, index) => (
+              <li
+                key={vol._id}
+                className={`p-4 rounded-lg shadow-md transition transform hover:scale-[1.02] ${
+                  index < 3
+                    ? 'bg-green-100 border-l-4 border-green-600'
+                    : 'bg-green-50 border border-green-200'
+                }`}
+              >
+                <div className="flex justify-between items-center">
+                  <span className="font-semibold text-green-800">{vol.name}</span>
+                  <span className="text-xs text-gray-600">
+                    {new Date(vol.checkInTime).toLocaleTimeString([], {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                  </span>
+                </div>
               </li>
             ))}
           </ul>
@@ -44,15 +59,18 @@ const AdminDashboard = () => {
         )}
       </section>
 
-      {/* ❌ Not Checked-In Volunteers */}
+      {/* Not Checked-In Section */}
       <section>
-        <h3 className="text-xl font-semibold text-red-700 mb-2">❌ Not Checked-In</h3>
-        <p className="text-sm text-gray-600 mb-2">Total: {notCheckedIn.length}</p>
+        <h3 className="text-2xl font-semibold text-red-700 mb-3">❌ Not Checked-In</h3>
+        <p className="text-sm text-gray-600 mb-4">Total: {notCheckedIn.length}</p>
         {notCheckedIn.length > 0 ? (
-          <ul className="space-y-2">
+          <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {notCheckedIn.map((vol) => (
-              <li key={vol._id} className="bg-red-100 p-3 rounded">
-                {vol.name}
+              <li
+                key={vol._id}
+                className="bg-red-50 border border-red-200 p-4 rounded-lg shadow-sm transition hover:shadow-md"
+              >
+                <span className="font-semibold text-red-800">{vol.name}</span>
               </li>
             ))}
           </ul>
