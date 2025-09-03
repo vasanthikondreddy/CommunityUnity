@@ -59,7 +59,7 @@ const AdminDashboard = () => {
         )}
       </section>
 
-      {/* Not Checked-In Section */}
+      
       <section>
         <h3 className="text-2xl font-semibold text-red-700 mb-3">❌ Not Checked-In</h3>
         <p className="text-sm text-gray-600 mb-4">Total: {notCheckedIn.length}</p>

@@ -4,7 +4,10 @@ import io from 'socket.io-client';
 import { Link } from 'react-router-dom';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
-const socket = io(API_BASE);
+const socket = io(API_BASE, {
+  transports: ['websocket'], // or ['websocket', 'polling']
+  withCredentials: true,
+});
 
 function CreateEvent() {
   const [formData, setFormData] = useState({
@@ -109,7 +112,7 @@ function CreateEvent() {
   );
 }
 
-// 🎨 Styles
+
 const containerStyle = {
   maxWidth: '500px',
   margin: '2rem auto',

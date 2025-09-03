@@ -67,7 +67,6 @@ const MemberDashboard = () => {
     <div className="p-6">
       <h2 className="text-2xl font-bold mb-4">Event Dashboard</h2>
 
-      {/* Search and Filter Controls */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
         <input
           type="text"

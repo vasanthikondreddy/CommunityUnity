@@ -1,4 +1,4 @@
-// src/App.jsx
+
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { useEffect } from 'react';
 import { io } from 'socket.io-client';
@@ -57,7 +57,7 @@ function App() {
         <Route path="/events" element={<Events socket={socket} />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
-  <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/admin" element={<AdminDashboard />} />
 
         <Route path="/event/:eventId/participants" element={<ParticipantList />} />
         <Route path="/dashboard" element={<Dashboard><DashboardRedirect /></Dashboard>} />
