@@ -1,40 +1,48 @@
-import { useEffect, useState } from 'react';
-import axios from 'axios';
-import { io } from 'socket.io-client';
+import React from 'react';
+import { Link } from 'react-router-dom';
+import EventCard from '../components/Event/EventCard.jsx';
 
-const socket = io(import.meta.env.VITE_API_BASE_URL); // e.g., http://localhost:5000
+const EventList = ({ events, onDelete }) => {
+  const safeEvents = Array.isArray(events) ? events : [];
 
-const EventList = () => {
-  const [events, setEvents] = useState([]);
-
-  useEffect(() => {
-    // Initial fetch
-    axios.get(`${import.meta.env.VITE_API_BASE_URL}/events`)
-      .then(res => setEvents(res.data))
-      .catch(err => console.error('Error fetching events:', err));
-
-    // Listen for new events
-    socket.on('newEvent', (event) => {
-      setEvents(prev => [event, ...prev]); // Add new event to top
-    });
-
-    return () => {
-      socket.off('newEvent');
-    };
-  }, []);
+ 
+  const user = JSON.parse(localStorage.getItem('user')) || null;
+  const userRole = localStorage.getItem('role');
 
   return (
-    <div className="p-6">
-      <h2 className="text-2xl font-bold mb-4">Upcoming Events</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {events.map(event => (
-          <div key={event._id} className="border rounded-lg p-4 shadow hover:shadow-md transition">
-            <h3 className="text-xl font-semibold">{event.title}</h3>
-            <p className="text-gray-600">{new Date(event.date).toLocaleDateString()}</p>
-            <p className="mt-2">{event.description}</p>
-          </div>
-        ))}
-      </div>
+    <div className="p-4">
+      <h2 className="text-xl font-semibold mb-4">📅 All Events</h2>
+
+      {safeEvents.length === 0 ? (
+        <p className="text-gray-500">No events to show.</p>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {safeEvents.map((event) => (
+            <EventCard
+              key={event._id}
+              event={event}
+              userRole={userRole}
+              user={user} 
+              onDelete={onDelete}
+            />
+          ))}
+        </div>
+      )}
+
+      <p className="mt-6 text-center text-sm text-gray-600">
+        Want to create an event directly?{' '}
+        <Link to="/create-event" className="text-blue-600 hover:underline font-medium">
+          Go to Event Creation
+        </Link>
+      </p>
+      
+      <p className="mt-2 text-center text-sm text-gray-600">
+        Just browsing?{' '}
+        <Link to="/" className="text-purple-600 hover:underline font-medium">
+          Go to Home
+        </Link>
+      </p>
+   
     </div>
   );
 };

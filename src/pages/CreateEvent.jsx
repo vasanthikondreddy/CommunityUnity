@@ -1,109 +1,170 @@
-// src/pages/CreateEvent.jsx
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
+import io from 'socket.io-client';
+import { Link } from 'react-router-dom';
 
-const CreateEvent = () => {
-  const [name, setName] = useState('');
-  const [date, setDate] = useState('');
-  const [location, setLocation] = useState('');
-  const [description, setDescription] = useState('');
-  const [message, setMessage] = useState('');
-  const [loading, setLoading] = useState(false);
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
+const socket = io(API_BASE);
 
-  const navigate = useNavigate();
-  const organizer = '64e1f8c9a2b3d9e7f4a12345'; // Replace with actual user ID
+function CreateEvent() {
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    date: '',
+    location: '',
+    organizer: '',
+    file: null,
+  });
+
+  useEffect(() => {
+    socket.on('newEvent', (event) => {
+      toast(`📢 New event posted: ${event.title}`, {
+        icon: '📅',
+        style: {
+          borderRadius: '8px',
+          background: '#333',
+          color: '#fff',
+        },
+      });
+    });
+
+    return () => socket.off('newEvent');
+  }, []);
+
+  const handleChange = (e) => {
+    const { name, value, files } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: files ? files[0] : value,
+    }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!name || !date || !location || !description) {
-      setMessage('❌ Please fill out all fields');
-      return;
-    }
-
-    const eventData = { name, date, location, description, organizer };
-    setLoading(true);
+    const data = new FormData();
+    Object.entries(formData).forEach(([key, value]) => {
+      if (value) data.append(key, value);
+    });
 
     try {
-      const response = await fetch('http://localhost:5000/api/events', {
+      const res = await fetch(`${API_BASE}/events`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(eventData)
+        body: data,
       });
 
-      const result = await response.json();
+      const json = await res.json();
 
-      if (response.ok) {
-        setMessage('✅ Event created successfully!');
-        setTimeout(() => navigate('/events'), 1500);
-      } else {
-        setMessage(`❌ ${result.error || 'Failed to create event'}`);
-      }
-    } catch (error) {
-      console.error('Error submitting event:', error);
-      setMessage('❌ Server error. Please try again.');
-    } finally {
-      setLoading(false);
+      if (!res.ok || !json.success) throw new Error('Event creation failed');
+
+      toast.success('🎉 Event created successfully!');
+      console.log('Event created:', json);
+
+      setFormData({
+        title: '',
+        description: '',
+        date: '',
+        location: '',
+        organizer: '',
+        file: null,
+      });
+    } catch (err) {
+      toast.error('❌ Failed to create event');
+      console.error('Create event error:', err.message);
     }
   };
 
   return (
-    <div className="max-w-xl mx-auto p-6 bg-white rounded shadow">
-      <h1 className="text-2xl font-bold mb-4">📝 Create New Event</h1>
-      {message && <p className="mb-4 text-sm text-red-600">{message}</p>}
-      <form onSubmit={handleSubmit}>
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-1">Event Name</label>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="w-full border px-3 py-2 rounded"
-            required
-          />
-        </div>
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-1">Date & Time</label>
-          <input
-            type="datetime-local"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className="w-full border px-3 py-2 rounded"
-            required
-          />
-        </div>
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-1">Location</label>
-          <input
-            type="text"
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            className="w-full border px-3 py-2 rounded"
-            required
-          />
-        </div>
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-1">Description</label>
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="w-full border px-3 py-2 rounded"
-            rows="4"
-            required
-          />
-        </div>
-        <button
-          type="submit"
-          disabled={loading}
-          className={`w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 ${
-            loading ? 'opacity-50 cursor-not-allowed' : ''
-          }`}
-        >
-          {loading ? 'Creating...' : 'Create Event'}
+    <div style={containerStyle}>
+      <h2 style={headingStyle}>📅 Create a New Event</h2>
+      <p style={subtextStyle}>
+        Fill in the details below to publish your event and share it with the community.
+      </p>
+
+      <form onSubmit={handleSubmit} style={formStyle}>
+        <input name="title" placeholder="🎉 Title" value={formData.title} onChange={handleChange} style={inputStyle} />
+        <input name="description" placeholder="📝 Description" value={formData.description} onChange={handleChange} style={inputStyle} />
+        <input name="date" type="date" value={formData.date} onChange={handleChange} style={inputStyle} />
+        <input name="location" placeholder="📍 Location" value={formData.location} onChange={handleChange} style={inputStyle} />
+        <input name="organizer" placeholder="👤 Organizer" value={formData.organizer} onChange={handleChange} style={inputStyle} />
+        <input name="file" type="file" onChange={handleChange} style={inputStyle} />
+
+        {formData.file && (
+          <p style={{ fontSize: '0.9rem', color: '#666' }}>
+            📎 Selected file: {formData.file.name}
+          </p>
+        )}
+
+        <button type="submit" style={buttonStyle}>
+          🚀 Create Event
         </button>
       </form>
+
+      <p style={footerTextStyle}>
+        Just browsing?{' '}
+        <Link to="/" style={linkStyle}>
+          Go to Home
+        </Link>
+      </p>
     </div>
   );
+}
+
+// 🎨 Styles
+const containerStyle = {
+  maxWidth: '500px',
+  margin: '2rem auto',
+  padding: '2rem',
+  backgroundColor: '#f9f9f9',
+  borderRadius: '8px',
+  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+};
+
+const headingStyle = {
+  fontSize: '1.8rem',
+  marginBottom: '0.5rem',
+};
+
+const subtextStyle = {
+  marginBottom: '1.5rem',
+  color: '#555',
+};
+
+const formStyle = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '1rem',
+};
+
+const inputStyle = {
+  padding: '0.75rem',
+  border: '1px solid #ccc',
+  borderRadius: '4px',
+  fontSize: '1rem',
+  width: '100%',
+};
+
+const buttonStyle = {
+  padding: '0.75rem 1.5rem',
+  backgroundColor: '#007bff',
+  color: '#fff',
+  border: 'none',
+  borderRadius: '4px',
+  cursor: 'pointer',
+  fontWeight: 'bold',
+  transition: 'background-color 0.3s ease',
+};
+
+const footerTextStyle = {
+  marginTop: '1rem',
+  textAlign: 'center',
+  fontSize: '0.9rem',
+  color: '#666',
+};
+
+const linkStyle = {
+  color: '#6b46c1',
+  textDecoration: 'underline',
+  fontWeight: '500',
 };
 
 export default CreateEvent;

@@ -23,6 +23,21 @@ const EventList = () => {
     fetchEvents();
   }, []);
 
+  const handleSignup = async () => {
+  try {
+    await axios.post(`/api/events/${event._id}/signups`, {
+      userId: currentUser._id,
+    });
+    toast.success('You’ve joined this event!');
+  } catch (err) {
+    toast.error('Signup failed');
+  }
+};
+
+<button onClick={handleSignup} className="btn btn-primary">
+  Join Event
+</button>
+
   return (
     <div className="max-w-3xl mx-auto p-6">
       <div className="flex justify-between items-center mb-6">

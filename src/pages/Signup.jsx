@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
-
+import toast from 'react-hot-toast';
 export default function Signup() {
   const { handleRegister } = useAuth();
   const navigate = useNavigate();
@@ -28,7 +28,9 @@ export default function Signup() {
 
     try {
       await handleRegister(formData);
+      toast.success('You’ve successfully signed up for this event!');
       navigate('/login', { state: { message: 'Account created! Please log in.' } });
+      
     } catch (err) {
       setError(err.message);
     }
@@ -57,6 +59,7 @@ export default function Signup() {
         <option value="member">Member</option>
         <option value="organizer">Organizer</option>
         <option value="admin">Admin</option>
+        <option value="volunteer">Volunteer</option>
       </select>
 
       <select name="availability" defaultValue="" required className="w-full mb-4 p-2 border rounded">
