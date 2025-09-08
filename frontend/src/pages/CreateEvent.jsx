@@ -1,35 +1,68 @@
 import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import io from 'socket.io-client';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
-const socket = io(API_BASE);
+const socket = io(API_BASE, {
+  transports: ['websocket'],
+  withCredentials: true,
+});
 
 function CreateEvent() {
+  const navigate = useNavigate();
+
+  const [userId, setUserId] = useState('');
+  const [role, setRole] = useState('');
+  const [isAuthorized, setIsAuthorized] = useState(false);
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     date: '',
+    startTime: '',
+    endTime: '',
     location: '',
-    organizer: '',
     file: null,
+    organizer: '',
   });
 
-  useEffect(() => {
-    socket.on('newEvent', (event) => {
-      toast(`📢 New event posted: ${event.title}`, {
-        icon: '📅',
-        style: {
-          borderRadius: '8px',
-          background: '#333',
-          color: '#fff',
-        },
-      });
-    });
+useEffect(() => {
+  const storedUserId = localStorage.getItem('userId');
+  const storedRole = localStorage.getItem('role');
 
-    return () => socket.off('newEvent');
-  }, []);
+  console.log('✅ Stored userId:', storedUserId);
+  console.log('✅ Stored role:', storedRole);
+
+  if (!storedUserId || !storedRole || storedRole.trim().toLowerCase() !== 'organizer') {
+    toast.error('🔒 Please log in as an organizer to create events');
+    navigate('/login');
+    return;
+  }
+
+  setUserId(storedUserId);
+  setRole(storedRole.trim().toLowerCase());
+  setIsAuthorized(true);
+
+  setFormData((prev) => ({
+    ...prev,
+    organizer: storedUserId,
+  }));
+
+  socket.on('newEvent', (event) => {
+    toast(`📢 New event posted: ${event.title}`, {
+      icon: '📅',
+      style: {
+        borderRadius: '8px',
+        background: '#333',
+        color: '#fff',
+      },
+    });
+  });
+
+  return () => socket.off('newEvent');
+}, [navigate]);
+
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
@@ -41,9 +74,22 @@ function CreateEvent() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!isAuthorized) {
+      toast.error('🚫 Only organizers can create events');
+      return;
+    }
+
+    if (formData.startTime >= formData.endTime) {
+      toast.error('⏱️ End time must be after start time');
+      return;
+    }
+
     const data = new FormData();
     Object.entries(formData).forEach(([key, value]) => {
-      if (value) data.append(key, value);
+      if (value !== null && value !== undefined) {
+        data.append(key, value);
+      }
     });
 
     try {
@@ -54,18 +100,18 @@ function CreateEvent() {
 
       const json = await res.json();
 
-      if (!res.ok || !json.success) throw new Error('Event creation failed');
+      if (!res.ok || !json.success) throw new Error(json.error || 'Event creation failed');
 
       toast.success('🎉 Event created successfully!');
-      console.log('Event created:', json);
-
       setFormData({
         title: '',
         description: '',
         date: '',
+        startTime: '',
+        endTime: '',
         location: '',
-        organizer: '',
         file: null,
+        organizer: userId,
       });
     } catch (err) {
       toast.error('❌ Failed to create event');
@@ -77,15 +123,20 @@ function CreateEvent() {
     <div style={containerStyle}>
       <h2 style={headingStyle}>📅 Create a New Event</h2>
       <p style={subtextStyle}>
-        Fill in the details below to publish your event and share it with the community.
+        {isAuthorized
+          ? 'Fill in the details below to publish your event and share it with the community.'
+          : 'Only organizers can create events. Please contact admin if you need access.'}
       </p>
 
       <form onSubmit={handleSubmit} style={formStyle}>
-        <input name="title" placeholder="🎉 Title" value={formData.title} onChange={handleChange} style={inputStyle} />
-        <input name="description" placeholder="📝 Description" value={formData.description} onChange={handleChange} style={inputStyle} />
-        <input name="date" type="date" value={formData.date} onChange={handleChange} style={inputStyle} />
-        <input name="location" placeholder="📍 Location" value={formData.location} onChange={handleChange} style={inputStyle} />
-        <input name="organizer" placeholder="👤 Organizer" value={formData.organizer} onChange={handleChange} style={inputStyle} />
+        <input name="title" placeholder="🎉 Title" value={formData.title} onChange={handleChange} style={inputStyle} required />
+        <textarea name="description" placeholder="📝 Description" value={formData.description} onChange={handleChange} style={{ ...inputStyle, height: '100px' }} required />
+        <input name="date" type="date" value={formData.date} onChange={handleChange} style={inputStyle} required />
+        <div style={{ display: 'flex', gap: '1rem' }}>
+          <input name="startTime" type="time" value={formData.startTime} onChange={handleChange} style={{ ...inputStyle, flex: 1 }} required />
+          <input name="endTime" type="time" value={formData.endTime} onChange={handleChange} style={{ ...inputStyle, flex: 1 }} required />
+        </div>
+        <input name="location" placeholder="📍 Location" value={formData.location} onChange={handleChange} style={inputStyle} required />
         <input name="file" type="file" onChange={handleChange} style={inputStyle} />
 
         {formData.file && (
@@ -94,9 +145,11 @@ function CreateEvent() {
           </p>
         )}
 
-        <button type="submit" style={buttonStyle}>
-          🚀 Create Event
-        </button>
+        {isAuthorized && (
+          <button type="submit" style={buttonStyle}>
+            🚀 Create Event
+          </button>
+        )}
       </form>
 
       <p style={footerTextStyle}>
@@ -109,19 +162,20 @@ function CreateEvent() {
   );
 }
 
-// 🎨 Styles
+// 🎨 Styling
 const containerStyle = {
-  maxWidth: '500px',
-  margin: '2rem auto',
+  maxWidth: '600px',
+  margin: '3rem auto',
   padding: '2rem',
-  backgroundColor: '#f9f9f9',
-  borderRadius: '8px',
-  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+  background: 'linear-gradient(to right, #f0f4ff, #e0e7ff)',
+  borderRadius: '12px',
+  boxShadow: '0 6px 20px rgba(0,0,0,0.1)',
 };
 
 const headingStyle = {
-  fontSize: '1.8rem',
+  fontSize: '2rem',
   marginBottom: '0.5rem',
+  color: '#333',
 };
 
 const subtextStyle = {
@@ -138,19 +192,21 @@ const formStyle = {
 const inputStyle = {
   padding: '0.75rem',
   border: '1px solid #ccc',
-  borderRadius: '4px',
+  borderRadius: '6px',
   fontSize: '1rem',
   width: '100%',
+  backgroundColor: '#fff',
 };
 
 const buttonStyle = {
   padding: '0.75rem 1.5rem',
-  backgroundColor: '#007bff',
+  backgroundColor: '#4f46e5',
   color: '#fff',
   border: 'none',
-  borderRadius: '4px',
+  borderRadius: '6px',
   cursor: 'pointer',
   fontWeight: 'bold',
+  fontSize: '1rem',
   transition: 'background-color 0.3s ease',
 };
 
@@ -162,7 +218,7 @@ const footerTextStyle = {
 };
 
 const linkStyle = {
-  color: '#6b46c1',
+  color: '#4f46e5',
   textDecoration: 'underline',
   fontWeight: '500',
 };

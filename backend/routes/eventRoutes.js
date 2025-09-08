@@ -1,11 +1,12 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const upload = require('../middlewares/upload');
+// const checkRole = require('../middlewares/checkRole');
 const Event = require('../models/Event');
 const EventSignup = require('../models/EventSignup');
 const EventFile = require('../models/EventFile');
-
-const User = require('../models/User'); 
+const User = require('../models/User');
+// const authenticate = require('../middlewares/authMiddleware');
 const {
   createEvent,
   getAllEvents,
@@ -14,7 +15,6 @@ const {
 } = require('../controllers/eventController');
 
 const router = express.Router();
-
 
 router.post('/', upload.single('file'), createEvent);
 
@@ -104,9 +104,10 @@ router.get('/:eventId/files', async (req, res) => {
   }
 });
 
+
 router.get('/volunteers', async (req, res) => {
   try {
-    const volunteers = await User.find({ role: 'volunteer' }); // Assuming User model
+    const volunteers = await User.find({ role: 'volunteer' });
     res.json({ volunteers });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch volunteers' });
@@ -139,6 +140,7 @@ router.patch('/volunteers/:id/checkin', async (req, res) => {
   }
 });
 
+
 router.put('/:eventId', async (req, res) => {
   const { eventId } = req.params;
   const updates = req.body;
@@ -148,16 +150,26 @@ router.put('/:eventId', async (req, res) => {
   }
 
   try {
-    const updatedEvent = await Event.findByIdAndUpdate(eventId, updates, {
-      new: true,
-      runValidators: true,
-    });
-
-    if (!updatedEvent) {
+    const event = await Event.findById(eventId);
+    if (!event) {
       return res.status(404).json({ success: false, error: 'Event not found' });
     }
 
-    res.status(200).json({ success: true, data: updatedEvent, message: 'Event updated successfully' });
+    const incomingOrganizer = req.body.organizer;
+    const actualOrganizer = event.organizer?.toString();
+
+    if (!incomingOrganizer) {
+      return res.status(400).json({ success: false, error: 'Organizer ID is required' });
+    }
+
+    if (incomingOrganizer !== actualOrganizer) {
+      return res.status(403).json({ success: false, error: 'You can only modify your own events' });
+    }
+
+    Object.assign(event, updates);
+    await event.save();
+
+    res.status(200).json({ success: true, data: event, message: 'Event updated successfully' });
   } catch (err) {
     console.error('Event update error:', err);
     res.status(500).json({ success: false, error: 'Failed to update event' });
@@ -166,18 +178,29 @@ router.put('/:eventId', async (req, res) => {
 
 router.delete('/:eventId', async (req, res) => {
   const { eventId } = req.params;
+  const { organizer } = req.body;
 
   if (!mongoose.Types.ObjectId.isValid(eventId)) {
     return res.status(400).json({ success: false, error: 'Invalid event ID format' });
   }
 
   try {
-    const deletedEvent = await Event.findByIdAndDelete(eventId);
-
-    if (!deletedEvent) {
+    const event = await Event.findById(eventId);
+    if (!event) {
       return res.status(404).json({ success: false, error: 'Event not found' });
     }
 
+    const actualOrganizer = event.organizer?.toString();
+
+    if (!organizer) {
+      return res.status(400).json({ success: false, error: 'Organizer ID is required' });
+    }
+
+    if (organizer !== actualOrganizer) {
+      return res.status(403).json({ success: false, error: 'You can only delete your own events' });
+    }
+
+    await Event.findByIdAndDelete(eventId);
     await EventSignup.deleteMany({ eventId });
     await EventFile.deleteMany({ eventId });
 
@@ -187,6 +210,9 @@ router.delete('/:eventId', async (req, res) => {
     res.status(500).json({ success: false, error: 'Failed to delete event' });
   }
 });
+
+
+
 
 
 router.post('/:eventId/signups', async (req, res) => {
@@ -207,6 +233,14 @@ router.post('/:eventId/signups', async (req, res) => {
     console.error('Signup error:', err);
     res.status(500).json({ success: false, error: 'Signup failed' });
   }
+});
+
+
+
+router.get('/:eventId/logistics', async (req, res) => {
+  const { eventId } = req.params;
+  const tasks = await Logistics.find({ eventId }); // Your logistics model
+  res.json(tasks); // Should return array of { name, status }
 });
 
 module.exports = router;

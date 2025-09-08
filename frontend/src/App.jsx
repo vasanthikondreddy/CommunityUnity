@@ -1,4 +1,4 @@
-// src/App.jsx
+
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { useEffect } from 'react';
 import { io } from 'socket.io-client';
@@ -25,6 +25,9 @@ import AnnouncementBoard from './pages/AnnoucementDashboard';
 import VolunteersPage from './pages/VolunteersPage';
 import ReportsPage from './pages/ReportsPage';
 import AdminDashboard from './pages/AdminDashboard';
+import SelectEventPage from './pages/SelectiveEventPage';
+import OrganizerLogisticsBoard from './pages/OrganizerLogisticsBoard';
+import EventManagementPage from './pages/EventManagementPage';
 const socket = io(import.meta.env.VITE_BACKEND_URL);
 
 function App() {
@@ -57,7 +60,7 @@ function App() {
         <Route path="/events" element={<Events socket={socket} />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
-  <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/admin" element={<AdminDashboard />} />
 
         <Route path="/event/:eventId/participants" element={<ParticipantList />} />
         <Route path="/dashboard" element={<Dashboard><DashboardRedirect /></Dashboard>} />
@@ -75,7 +78,11 @@ function App() {
         <Route path="/volunteer" element={<VolunteerCheckIn />} />
         <Route path="/announcements" element={<AnnouncementBoard  socket={socket}/>} />
         <Route path="/volunteers" element={<VolunteersPage />} />
-        <Route path="/reports" element={<ReportsPage />} />
+        <Route path="/reports" element={<ReportsPage />} /><Route path="/logistics" element={<SelectEventPage />} />
+        <Route path="/logistics/:eventId" element={<OrganizerLogisticsBoard />} />
+        <Route path="/select-event" element={<SelectEventPage />} />
+
+        <Route path="/manage-event/:eventId" element={<EventManagementPage />} /> 
       </Routes>
     </Router>
   );

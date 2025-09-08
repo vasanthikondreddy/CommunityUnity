@@ -3,9 +3,9 @@ const { getIO } = require('../socket');
 
 const createEvent = async (req, res) => {
   try {
-    const { title, description, date, location, organizer } = req.body;
+    const { title, description, date, location, organizer, startTime, endTime } = req.body;
 
-    if (!title || !description || !date || !location || !organizer) {
+    if (!title || !description || !date || !location || !organizer || !startTime || !endTime) {
       return res.status(400).json({ success: false, error: 'Missing required fields' });
     }
 
@@ -22,6 +22,8 @@ const createEvent = async (req, res) => {
       date,
       location,
       organizer,
+      startTime,
+      endTime,
       ...(fileData && { file: fileData }),
     });
 
@@ -33,7 +35,6 @@ const createEvent = async (req, res) => {
       message: 'Event created successfully',
     });
 
-    
     const io = getIO();
     io.emit('newEvent', event);
   } catch (err) {
@@ -82,9 +83,79 @@ const createSignup = async (req, res) => {
   }
 };
 
+const updateEvent = async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.id);
+    if (!event) {
+      return res.status(404).json({ success: false, error: 'Event not found' });
+    }
+
+    const incomingOrganizer = req.body.organizer;
+    const actualOrganizer = event.organizer?.toString();
+
+    if (!incomingOrganizer) {
+      return res.status(400).json({ success: false, error: 'Organizer ID is required' });
+    }
+
+    if (incomingOrganizer !== actualOrganizer) {
+      return res.status(403).json({
+        success: false,
+        error: 'Only the organizer or admin can edit this event',
+      });
+    }
+
+    Object.assign(event, req.body);
+    await event.save();
+
+    res.status(200).json({
+      success: true,
+      data: event,
+      message: 'Event updated successfully',
+    });
+  } catch (err) {
+    console.error('Error updating event:', err);
+    res.status(500).json({ success: false, error: 'Failed to update event' });
+  }
+};
+
+const deleteEvent = async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.id);
+    if (!event) {
+      return res.status(404).json({ success: false, error: 'Event not found' });
+    }
+
+    const incomingOrganizer = req.body.organizer;
+    const actualOrganizer = event.organizer?.toString();
+
+    if (!incomingOrganizer) {
+      return res.status(400).json({ success: false, error: 'Organizer ID is required' });
+    }
+
+    if (incomingOrganizer !== actualOrganizer) {
+      return res.status(403).json({
+        success: false,
+        error: 'Only the organizer or admin can delete this event',
+      });
+    }
+
+    await event.deleteOne();
+
+    res.status(200).json({
+      success: true,
+      message: 'Event deleted successfully',
+    });
+  } catch (err) {
+    console.error('Error deleting event:', err);
+    res.status(500).json({ success: false, error: 'Failed to delete event' });
+  }
+};
+
 module.exports = {
   createEvent,
   getAllEvents,
   getEventsByUser,
   createSignup,
+  updateEvent,
+  deleteEvent,
 };

@@ -4,28 +4,31 @@ module.exports = {
   init: (server) => {
     io = require("socket.io")(server, {
       cors: {
-        origin: "*",
+        origin: "http://localhost:5173", 
         methods: ["GET", "POST"],
+        credentials: true,              
       },
+      transports: ["websocket"],        
     });
 
     io.on("connection", (socket) => {
       console.log("🔌 New client connected:", socket.id);
 
-      // Join room
+      socket.onAny((event, ...args) => {
+        console.log(`📡 Event received: ${event}`, args);
+      });
+
       socket.on("joinRoom", (roomId) => {
         socket.join(roomId);
         console.log(`🟢 User joined room: ${roomId}`);
       });
 
-      // Send chat message
       socket.on("sendMessage", (data) => {
-        // data = { room: 'event123', user: 'Vasanthi', text: 'Hello!' }
         io.to(data.room).emit("receiveMessage", data);
       });
 
-      socket.on("disconnect", () => {
-        console.log("❌ Client disconnected:", socket.id);
+      socket.on("disconnect", (reason) => {
+        console.log("❌ Client disconnected:", socket.id, "Reason:", reason);
       });
     });
 
