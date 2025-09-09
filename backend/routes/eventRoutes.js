@@ -6,7 +6,7 @@ const Event = require('../models/Event');
 const EventSignup = require('../models/EventSignup');
 const EventFile = require('../models/EventFile');
 const User = require('../models/User');
-// const authenticate = require('../middlewares/authMiddleware');
+const Logistics = require('../models/Logistics');
 const {
   createEvent,
   getAllEvents,
@@ -238,9 +238,91 @@ router.post('/:eventId/signups', async (req, res) => {
 
 
 router.get('/:eventId/logistics', async (req, res) => {
+  try {
+    const { eventId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(eventId)) {
+      return res.status(400).json({ error: 'Invalid event ID format' });
+    }
+
+    const logistics = await Logistics.find({ eventId });
+
+    res.status(200).json(logistics);
+  } catch (err) {
+    console.error('Error fetching logistics:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+router.post('/:eventId/logistics', async (req, res) => {
   const { eventId } = req.params;
-  const tasks = await Logistics.find({ eventId }); // Your logistics model
-  res.json(tasks); // Should return array of { name, status }
+  const { name, status } = req.body;
+
+  if (!mongoose.Types.ObjectId.isValid(eventId)) {
+    return res.status(400).json({ error: 'Invalid event ID format' });
+  }
+
+  if (!name) {
+    return res.status(400).json({ error: 'Task name is required' });
+  }
+
+  try {
+    const task = new Logistics({ eventId, name, status });
+    await task.save();
+    res.status(201).json(task);
+  } catch (err) {
+    console.error('Error creating logistics task:', err);
+    res.status(500).json({ error: 'Failed to create task' });
+  }
+});
+
+
+// Update a logistics task
+router.put('/:eventId/logistics/:taskId', async (req, res) => {
+  const { eventId, taskId } = req.params;
+  const { name, status } = req.body;
+
+  if (!mongoose.Types.ObjectId.isValid(taskId)) {
+    return res.status(400).json({ error: 'Invalid task ID format' });
+  }
+
+  try {
+    const updated = await Logistics.findOneAndUpdate(
+      { _id: taskId, eventId },
+      { name, status },
+      { new: true }
+    );
+
+    if (!updated) {
+      return res.status(404).json({ error: 'Task not found' });
+    }
+
+    res.status(200).json(updated);
+  } catch (err) {
+    console.error('Error updating task:', err);
+    res.status(500).json({ error: 'Failed to update task' });
+  }
+});
+
+// Delete a logistics task
+router.delete('/:eventId/logistics/:taskId', async (req, res) => {
+  const { eventId, taskId } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(taskId)) {
+    return res.status(400).json({ error: 'Invalid task ID format' });
+  }
+
+  try {
+    const deleted = await Logistics.findOneAndDelete({ _id: taskId, eventId });
+
+    if (!deleted) {
+      return res.status(404).json({ error: 'Task not found' });
+    }
+
+    res.status(200).json({ message: 'Task deleted successfully' });
+  } catch (err) {
+    console.error('Error deleting task:', err);
+    res.status(500).json({ error: 'Failed to delete task' });
+  }
 });
 
 module.exports = router;

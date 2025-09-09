@@ -82,7 +82,9 @@ function App() {
         <Route path="/logistics/:eventId" element={<OrganizerLogisticsBoard />} />
         <Route path="/select-event" element={<SelectEventPage />} />
 
-        <Route path="/manage-event/:eventId" element={<EventManagementPage />} /> 
+        <Route path="/manage-event/:eventId" element={<EventManagementPage />} />
+
+ 
       </Routes>
     </Router>
   );
