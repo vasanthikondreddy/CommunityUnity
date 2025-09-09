@@ -3,13 +3,16 @@ import { useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-const OrganizerDashboard = ({ user }) => {
+const OrganizerDashboard = ({ user, events = [] }) => {
   const navigate = useNavigate();
 
   const handleNavigation = (path) => {
     navigate(path);
     toast.info(`Navigated to ${path}`, { autoClose: 2000 });
   };
+
+  
+  const firstEventId = events.length > 0 ? events[0]._id : null;
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -43,6 +46,7 @@ const OrganizerDashboard = ({ user }) => {
           >
             🙋‍♀️ View Volunteers
           </button>
+
 
           <button
             onClick={() => handleNavigation('/reports')}
