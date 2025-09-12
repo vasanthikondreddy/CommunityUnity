@@ -16,11 +16,7 @@ export default function Profile() {
     <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded shadow-md">
       <h2 className="text-2xl font-bold text-blue-600 mb-4">Your Profile</h2>
       <div className="flex items-center space-x-4 mb-6">
-        <img
-          src={user.avatarUrl || 'https://i.pravatar.cc/150?u=default'}
-          alt="avatar"
-          className="w-20 h-20 rounded-full border-2 border-blue-600"
-        />
+        
         <div>
           <h3 className="text-xl font-semibold">{user.name}</h3>
           <p className="text-gray-600">{user.email}</p>

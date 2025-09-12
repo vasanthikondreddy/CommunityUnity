@@ -1,12 +1,12 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const upload = require('../middlewares/upload');
-// const checkRole = require('../middlewares/checkRole');
 const Event = require('../models/Event');
 const EventSignup = require('../models/EventSignup');
 const EventFile = require('../models/EventFile');
 const User = require('../models/User');
 const Logistics = require('../models/Logistics');
+const Task = require('../models/Task');
 const {
   createEvent,
   getAllEvents,
@@ -30,22 +30,7 @@ router.get('/', async (req, res) => {
 });
 
 
-router.get('/:eventId/participants', async (req, res) => {
-  const { eventId } = req.params;
 
-  if (!mongoose.Types.ObjectId.isValid(eventId)) {
-    return res.status(400).json({ success: false, error: 'Invalid event ID format' });
-  }
-
-  try {
-    const signups = await EventSignup.find({ eventId }).populate('userId', 'name email');
-    const participants = signups.map(s => s.userId);
-    res.status(200).json({ success: true, data: participants });
-  } catch (err) {
-    console.error('Participant fetch error:', err);
-    res.status(500).json({ success: false, error: 'Failed to fetch participants' });
-  }
-});
 
 
 router.get('/user/:userId', getEventsByUser);
@@ -71,7 +56,26 @@ router.get('/created/:userId', async (req, res) => {
   }
 });
 
+router.get('/:eventId/participants', async (req, res) => {
+  const { eventId } = req.params;
 
+  if (!mongoose.Types.ObjectId.isValid(eventId)) {
+    return res.status(400).json({ success: false, error: 'Invalid event ID format' });
+  }
+
+  try {
+    const signups = await EventSignup.find({ eventId }).populate('userId', 'name email');
+
+    const participants = signups
+      .map(s => s.userId)
+      .filter(u => u && u.name); 
+
+    res.status(200).json({ success: true, data: participants });
+  } catch (err) {
+    console.error('Participant fetch error:', err);
+    res.status(500).json({ success: false, error: 'Failed to fetch participants' });
+  }
+});
 router.get('/:eventId', async (req, res) => {
   const { eventId } = req.params;
 
@@ -276,7 +280,7 @@ router.post('/:eventId/logistics', async (req, res) => {
 });
 
 
-// Update a logistics task
+
 router.put('/:eventId/logistics/:taskId', async (req, res) => {
   const { eventId, taskId } = req.params;
   const { name, status } = req.body;
@@ -324,5 +328,109 @@ router.delete('/:eventId/logistics/:taskId', async (req, res) => {
     res.status(500).json({ error: 'Failed to delete task' });
   }
 });
+
+
+router.post('/:eventId/logistics', async (req, res) => {
+  const { eventId } = req.params;
+  const { name, status, assignedTo } = req.body;
+
+  if (!mongoose.Types.ObjectId.isValid(eventId)) {
+    return res.status(400).json({ error: 'Invalid event ID format' });
+  }
+
+  if (!name) {
+    return res.status(400).json({ error: 'Task name is required' });
+  }
+
+  try {
+    const logistics = new Logistics({ eventId, name, status, assignedTo });
+    await logistics.save();
+
+    if (assignedTo) {
+      const task = new Task({
+        title: name,
+        status,
+        assignedTo,
+        eventId,
+        createdAt: new Date(),
+      });
+      await task.save();
+    }
+
+    res.status(201).json(logistics);
+  } catch (err) {
+    console.error('Error creating logistics task:', err);
+    res.status(500).json({ error: 'Failed to create task' });
+  }
+});
+
+
+router.put('/:eventId/logistics/:taskId/assign', async (req, res) => {
+  const { eventId, taskId } = req.params;
+  const { assignedTo } = req.body;
+
+  if (!mongoose.Types.ObjectId.isValid(taskId)) {
+    return res.status(400).json({ error: 'Invalid task ID format' });
+  }
+
+  if (!assignedTo || !mongoose.Types.ObjectId.isValid(assignedTo)) {
+    return res.status(400).json({ error: 'Invalid or missing volunteer ID' });
+  }
+
+  try {
+    const updated = await Logistics.findOneAndUpdate(
+      { _id: taskId, eventId },
+      { assignedTo },
+      { new: true }
+    );
+
+    if (!updated) {
+      return res.status(404).json({ error: 'Logistics task not found' });
+    }
+
+    // Sync to Task model
+    const existingTask = await Task.findOne({ eventId, title: updated.name });
+    if (!existingTask) {
+      await new Task({
+        title: updated.name,
+        status: updated.status,
+        assignedTo,
+        eventId,
+      }).save();
+    } else {
+      existingTask.assignedTo = assignedTo;
+      await existingTask.save();
+    }
+
+    res.status(200).json(updated);
+  } catch (err) {
+    console.error('Assignment error:', err);
+    res.status(500).json({ error: 'Failed to assign volunteer' });
+  }
+});
+
+
+
+
+router.get('/volunteers/event/:eventId', async (req, res) => {
+  const { eventId } = req.params;
+  console.log('Fetching volunteers for event:', eventId);
+
+  try {
+    const signups = await EventSignup.find({ eventId }).populate('userId', 'name role');
+    console.log('Signups found:', signups);
+
+    const volunteers = signups
+      .map((s) => s.userId)
+      .filter((u) => u && u.role === 'volunteer');
+
+    console.log('Filtered volunteers:', volunteers);
+    res.json({ volunteers });
+  } catch (err) {
+    console.error('Error fetching event volunteers:', err);
+    res.status(500).json({ error: 'Failed to fetch event volunteers' });
+  }
+});
+
 
 module.exports = router;

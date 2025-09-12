@@ -3,10 +3,11 @@ import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
-const TaskItem = ({ task, eventId, onRefresh }) => {
+const TaskItem = ({ task, eventId, onRefresh, volunteers }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(task.name);
   const [status, setStatus] = useState(task.status);
+  const [assignedTo, setAssignedTo] = useState(task.assignedTo?._id || '');
 
   const handleUpdate = async () => {
     try {
@@ -37,54 +38,90 @@ const TaskItem = ({ task, eventId, onRefresh }) => {
     }
   };
 
-  return (
-    <div className="flex items-center justify-between border-b py-2">
-      {isEditing ? (
-        <div className="flex flex-col w-full">
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="border p-1 rounded mb-1"
-          />
-          <select
-            value={status}
-            onChange={(e) => setStatus(e.target.value)}
-            className="border p-1 rounded"
-          >
-            <option>Pending</option>
-            <option>Scheduled</option>
-            <option>Completed</option>
-          </select>
-        </div>
-      ) : (
-        <div>
-          <p className="font-medium">{task.name}</p>
-          <p className="text-sm text-gray-500">{task.status}</p>
-        </div>
-      )}
+  const handleAssign = async () => {
+    if (!assignedTo) {
+      toast.error('Please select a volunteer before assigning');
+      return;
+    }
 
-      <div className="flex gap-2">
+    try {
+      await axios.put(
+        `${import.meta.env.VITE_API_BASE_URL}/events/${eventId}/logistics/${task._id}/assign`,
+        { assignedTo }
+      );
+      toast.success('Volunteer assigned');
+      onRefresh();
+    } catch (err) {
+      console.error('Assignment error:', err);
+      toast.error('Failed to assign volunteer');
+    }
+  };
+
+  return (
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b py-3 gap-4">
+      <div className="flex-1">
         {isEditing ? (
-          <button
-            onClick={handleUpdate}
-            className="text-green-600 hover:underline"
-          >
+          <>
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="border p-1 rounded w-full mb-1"
+            />
+            <select
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+              className="border p-1 rounded w-full"
+            >
+              <option>Pending</option>
+              <option>Scheduled</option>
+              <option>Completed</option>
+            </select>
+          </>
+        ) : (
+          <>
+            <p className="font-medium">{task.name}</p>
+            <p className="text-sm text-gray-500">Status: {task.status}</p>
+          </>
+        )}
+        <p className="text-xs text-gray-500 mt-1">
+          Assigned to:{' '}
+          <span className="font-semibold">
+            {task.assignedTo?.name || '— Not assigned —'}
+          </span>
+        </p>
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
+        {isEditing ? (
+          <button onClick={handleUpdate} className="text-green-600 hover:underline">
             Save
           </button>
         ) : (
-          <button
-            onClick={() => setIsEditing(true)}
-            className="text-indigo-600 hover:underline"
-          >
+          <button onClick={() => setIsEditing(true)} className="text-indigo-600 hover:underline">
             Edit
           </button>
         )}
-        <button
-          onClick={handleDelete}
-          className="text-pink-600 hover:underline"
-        >
+        <button onClick={handleDelete} className="text-pink-600 hover:underline">
           Delete
         </button>
+
+        <div className="flex items-center gap-2">
+          <select
+            value={assignedTo}
+            onChange={(e) => setAssignedTo(e.target.value)}
+            className="border p-1 rounded"
+          >
+            <option value="">Assign Volunteer</option>
+            {volunteers.map((v) => (
+              <option key={v._id} value={v._id}>
+                {v.name}
+              </option>
+            ))}
+          </select>
+          <button onClick={handleAssign} className="text-blue-600 hover:underline">
+            Assign
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -148,6 +185,7 @@ const AddLogisticsTask = ({ eventId, onTaskAdded }) => {
 const EventManagementPage = () => {
   const { eventId } = useParams();
   const [logisticsItems, setLogisticsItems] = useState([]);
+  const [volunteers, setVolunteers] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const fetchLogistics = async () => {
@@ -167,8 +205,21 @@ const EventManagementPage = () => {
     }
   };
 
+ const fetchVolunteers = async () => {
+  try {
+    const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/volunteers/event/${eventId}`);
+    setVolunteers(res.data.volunteers);
+  } catch (err) {
+    console.error('Error fetching volunteers:', err);
+  }
+};
+
+
   useEffect(() => {
-    if (eventId) fetchLogistics();
+    if (eventId) {
+      fetchLogistics();
+      fetchVolunteers();
+    }
   }, [eventId]);
 
   return (
@@ -193,6 +244,7 @@ const EventManagementPage = () => {
                   task={task}
                   eventId={eventId}
                   onRefresh={fetchLogistics}
+                  volunteers={volunteers}
                 />
               ))}
             </div>

@@ -157,7 +157,14 @@ useEffect(() => {
         <Link to="/" style={linkStyle}>
           Go to Home
         </Link>
+        
       </p>
+      <p style={footerTextStyle}>
+        Do You want to view Event ?{' '}
+      <Link to="/my-events" style={linkStyle}>
+  View My Events
+</Link>
+     </p> 
     </div>
   );
 }

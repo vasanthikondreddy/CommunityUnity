@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
-import { useAuth } from './../context/AuthContext';
 
 export default function EventPage() {
   const { eventId } = useParams();
@@ -18,9 +19,10 @@ export default function EventPage() {
       try {
         const res = await fetch(`${API_BASE}/events/${eventId}`);
         const data = await res.json();
-        setEvent(data.data || data); 
+        setEvent(data.data || data);
       } catch (err) {
         console.error('Error fetching event:', err);
+        toast.error('Failed to load event');
       } finally {
         setLoading(false);
       }
@@ -40,10 +42,11 @@ export default function EventPage() {
         },
       });
       const result = await res.json();
-      alert(result.message || 'Event deleted');
+      toast.success(result.message || 'Event deleted');
       navigate('/dashboard/organizer');
     } catch (err) {
       console.error('Delete failed:', err);
+      toast.error('Failed to delete event');
     }
   };
 
@@ -58,35 +61,30 @@ export default function EventPage() {
         body: JSON.stringify({ userId: user._id }),
       });
       const result = await res.json();
-      alert(result.message || 'Successfully joined!');
+      toast.success(result.message || 'Successfully joined!');
     } catch (err) {
       console.error('Join failed:', err);
+      toast.error('Failed to join event');
     }
   };
 
   if (loading) return <div className="p-4">Loading event...</div>;
   if (!event) return <div className="p-4 text-red-600">Event not found.</div>;
 
-
   const isOrganizer =
     user?.role === 'organizer' &&
     event?.organizer &&
     (user._id === event.organizer._id || user._id === event.organizer);
 
- 
-  console.log('User ID:', user._id);
-  console.log('Event Organizer:', event.organizer);
-  console.log('isOrganizer:', isOrganizer);
-
   return (
     <div className="max-w-3xl mx-auto p-6 bg-white rounded shadow">
+      <ToastContainer position="top-right" autoClose={3000} />
       <h1 className="text-2xl font-bold text-blue-700 mb-2">{event.title}</h1>
       <p className="text-gray-600 mb-2">
         📅 {new Date(event.date).toLocaleDateString()} • 📍 {event.location}
       </p>
       <p className="mb-4 text-gray-800">{event.description}</p>
 
-     
       {event.organizer?.name && (
         <p className="text-sm text-gray-500 mb-4">
           Organized by: {event.organizer.name}
@@ -116,13 +114,11 @@ export default function EventPage() {
           ✅ Join Event
         </button>
       )}
-      <p className="text-sm text-gray-500">
-  Organizer ID: {event.organizer?._id || event.organizer}
-</p>
-<p className="text-sm text-gray-500">
-  Your ID: {user._id}
-</p>
 
+      <p className="text-sm text-gray-500 mt-4">
+        Organizer ID: {event.organizer?._id || event.organizer}
+      </p>
+      <p className="text-sm text-gray-500">Your ID: {user._id}</p>
     </div>
   );
 }

@@ -25,12 +25,12 @@ const authRoutes = require("./routes/authRoutes");
 const eventRoutes = require("./routes/eventRoutes");
 const volunteerRoutes = require("./routes/volunteerRoutes");
 const announcementRoutes = require("./routes/announcementRoutes");
-
+const taskRoutes = require("./routes/Tasks");
 app.use("/api/auth", authRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/volunteers", volunteerRoutes);
 app.use("/api/announcements", announcementRoutes);
-
+app.use("/api/tasks", taskRoutes);
 io.on("connection", (socket) => {
   console.log("🟢 Socket connected:", socket.id);
 

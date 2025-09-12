@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
+const EventSignup = require('../models/EventSignup'); 
 
 
 router.get('/', async (req, res) => {
@@ -52,5 +53,15 @@ router.patch('/:id/checkout', async (req, res) => {
     res.status(500).json({ error: 'Check-out failed' });
   }
 });
+
+router.get('/event/:eventId', async (req, res) => {
+  try {
+    const volunteers = await User.find({ role: 'volunteer' });
+    res.json({ volunteers });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch volunteers' });
+  }
+});
+
 
 module.exports = router;
