@@ -1,18 +1,20 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
 import axios from 'axios';
 
-export default function ParticipantList() {
-  const { eventId } = useParams();
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
+
+export default function ParticipantsList({ eventId }) {
   const [participants, setParticipants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    axios.get(`/api/events/${eventId}/participants`)
+    if (!eventId) return;
+
+    axios.get(`${API_BASE}/events/${eventId}/participants`)
       .then(res => {
         if (res.data.success) {
-          setParticipants(res.data.data); 
+          setParticipants(res.data.data);
         } else {
           setError(res.data.error || 'Failed to load participants');
         }
@@ -25,9 +27,7 @@ export default function ParticipantList() {
   }, [eventId]);
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">👥 Participants</h1>
-
+    <div className="p-4 bg-gray-50 rounded-lg shadow">
       {loading ? (
         <p className="text-gray-500">Loading participants...</p>
       ) : error ? (

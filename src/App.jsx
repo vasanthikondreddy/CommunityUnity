@@ -28,6 +28,8 @@ import AdminDashboard from './pages/AdminDashboard';
 import SelectEventPage from './pages/SelectiveEventPage';
 import OrganizerLogisticsBoard from './pages/OrganizerLogisticsBoard';
 import EventManagementPage from './pages/EventManagementPage';
+import VolunteerTaskBoard from './pages/VolunteerTaskBoard';
+
 const socket = io(import.meta.env.VITE_BACKEND_URL);
 
 function App() {
@@ -61,8 +63,8 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/events/:eventId/participants" element={<ParticipantList />} />
 
-        <Route path="/event/:eventId/participants" element={<ParticipantList />} />
         <Route path="/dashboard" element={<Dashboard><DashboardRedirect /></Dashboard>} />
         <Route path="/user-dashboard" element={<UserDashboard />} />
         <Route path="/my-events" element={<MyEvents />} />
@@ -81,9 +83,11 @@ function App() {
         <Route path="/reports" element={<ReportsPage />} /><Route path="/logistics" element={<SelectEventPage />} />
         <Route path="/logistics/:eventId" element={<OrganizerLogisticsBoard />} />
         <Route path="/select-event" element={<SelectEventPage />} />
+        <Route path="/dashboard/organizer" element={<OrganizerDashboard />} />
 
         <Route path="/manage-event/:eventId" element={<EventManagementPage />} />
-
+        <Route path="/my-tasks" element={<VolunteerTaskBoard />} />
+        
  
       </Routes>
     </Router>

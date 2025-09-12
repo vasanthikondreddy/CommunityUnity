@@ -24,28 +24,35 @@ export default function Login() {
   }, [shouldRedirect, navigate]);
 
   const submit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    const email = e.target.email.value.trim();
-    const password = e.target.password.value;
+  e.preventDefault();
+  setLoading(true);
+  const email = e.target.email.value.trim();
+  const password = e.target.password.value;
 
-    try {
-      await handleLogin({ email, password });
-      toast.success('Login successful!');
+  try {
+    await handleLogin({ email, password });
+    toast.success('Login successful!');
+
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (user?.role === 'volunteer') {
+      navigate('/my-tasks');
+    } else {
       navigate('/dashboard');
-    } catch (err) {
-      if (err.message.includes('User not found')) {
-        toast.error('No account found. Redirecting to signup...');
-        setRedirectMessage('No account found. Redirecting to signup...');
-        setShouldRedirect(true);
-      } else {
-        toast.error(err.message || 'Login failed');
-        setError(err.message);
-      }
-    } finally {
-      setLoading(false);
     }
-  };
+  } catch (err) {
+    if (err.message.includes('User not found')) {
+      toast.error('No account found. Redirecting to signup...');
+      setRedirectMessage('No account found. Redirecting to signup...');
+      setShouldRedirect(true);
+    } else {
+      toast.error(err.message || 'Login failed');
+      setError(err.message);
+    }
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <form

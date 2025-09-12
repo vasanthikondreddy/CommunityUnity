@@ -34,11 +34,20 @@ export default function Navbar() {
             <Link to="/dashboard/organizer">Organizer Dashboard</Link>
           </>
         )}
-
+          {user?.role === 'admin' && (
+          <>
+            <Link to="/admin">Admin Dashboard</Link>
+          </>
+        )}
+        {user?.role === 'volunteer' && (
+          <>
+            <Link to="/my-tasks">My Tasks</Link>
+          </>
+        )}
         {user?.role === 'user' && (
           <Link to="/dashboard/user">My Events</Link>
         )}
-
+        
        
         {user && (
           <div className="relative">
@@ -46,11 +55,7 @@ export default function Navbar() {
               onClick={() => setMenuOpen(!menuOpen)}
               className="flex items-center space-x-2 bg-white text-blue-600 px-3 py-1 rounded-full font-semibold"
             >
-              <img
-                src={user.avatarUrl || 'https://i.pravatar.cc/150?u=default'}
-                alt="avatar"
-                className="w-8 h-8 rounded-full"
-              />
+             
               <span>{user.name}</span>
             </button>
 
