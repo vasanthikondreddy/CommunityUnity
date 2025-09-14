@@ -107,6 +107,19 @@ router.get('/:eventId/files', async (req, res) => {
     res.status(500).json({ success: false, error: 'Failed to fetch files' });
   }
 });
+router.post('/events/:eventId/upload', upload.single('file'), async (req, res) => {
+  const { eventId } = req.params;
+  const { originalname, path } = req.file;
+
+  const fileRecord = new EventFile({
+    eventId,
+    file_name: originalname,
+    file_url: `/uploads/${path}`, 
+  });
+
+  await fileRecord.save();
+  res.json({ success: true, data: fileRecord });
+});
 
 
 router.get('/volunteers', async (req, res) => {

@@ -3,6 +3,8 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 import EventCard from '../components/Event/EventCard';
 
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
+
 const MemberDashboard = () => {
   const [events, setEvents] = useState([]);
   const [filteredEvents, setFilteredEvents] = useState([]);
@@ -13,7 +15,7 @@ const MemberDashboard = () => {
   const user = JSON.parse(localStorage.getItem('user')) || null;
 
   useEffect(() => {
-    axios.get('/api/events')
+    axios.get(`${API_BASE}/events`)
       .then(res => {
         setEvents(res.data);
         setLoading(false);
@@ -48,7 +50,7 @@ const MemberDashboard = () => {
 
   const handleSignup = async (eventId) => {
     try {
-      await axios.post(`/api/events/${eventId}/signup`, { userId: user._id });
+      await axios.post(`${API_BASE}/events/${eventId}/signup`, { userId: user._id });
       setEvents(prev =>
         prev.map(event =>
           event._id === eventId
@@ -76,7 +78,7 @@ const MemberDashboard = () => {
           onChange={e => setSearchTerm(e.target.value)}
         />
         <button
-          className={`px-4 py-2 rounded ${
+          className={`px-4 py-2 rounded transition transform hover:scale-[1.02] ${
             showOnlyMine ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-800'
           }`}
           onClick={() => setShowOnlyMine(prev => !prev)}
@@ -85,9 +87,8 @@ const MemberDashboard = () => {
         </button>
       </div>
 
-     
       {loading ? (
-        <p>Loading events...</p>
+        <p className="text-gray-500 italic">Loading events...</p>
       ) : filteredEvents.length ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {filteredEvents.map(event => {
@@ -111,7 +112,7 @@ const MemberDashboard = () => {
           })}
         </div>
       ) : (
-        <p>No events match your criteria.</p>
+        <p className="text-gray-500 italic">No events match your criteria.</p>
       )}
     </div>
   );

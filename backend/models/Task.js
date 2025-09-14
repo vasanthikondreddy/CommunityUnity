@@ -10,7 +10,7 @@ const taskSchema = new mongoose.Schema({
   },
   assignedTo: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User', // 👈 This is the missing piece
+    ref: 'User', 
   },
   eventId: {
     type: mongoose.Schema.Types.ObjectId,

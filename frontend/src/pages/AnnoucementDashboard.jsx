@@ -6,6 +6,7 @@ import 'react-toastify/dist/ReactToastify.css';
 
 const socket = io(import.meta.env.VITE_BACKEND_URL);
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
+
 const AnnouncementDashboard = () => {
   const [announcements, setAnnouncements] = useState([]);
   const [form, setForm] = useState({ title: '', message: '' });
@@ -17,7 +18,7 @@ const AnnouncementDashboard = () => {
 
   const fetchAnnouncements = async () => {
     try {
-      const res = await axios.get('/api/announcements');
+      const res = await axios.get(`${API_BASE}/announcements`);
       setAnnouncements(res.data);
     } catch (err) {
       toast.error('Failed to load announcements');
@@ -39,19 +40,17 @@ const AnnouncementDashboard = () => {
     }
 
     try {
+      const payload = {
+        ...form,
+        userId: user._id,
+        role: userRole,
+      };
+
       if (editingId) {
-        await axios.put(`/api/announcements/${editingId}`, {
-          ...form,
-          userId: user._id,
-          role: userRole,
-        });
+        await axios.put(`${API_BASE}/announcements/${editingId}`, payload);
         toast.success('✅ Announcement updated');
       } else {
-        await axios.post('/api/announcements', {
-          ...form,
-          userId: user._id,
-          role: userRole,
-        });
+        await axios.post(`${API_BASE}/announcements`, payload);
         toast.success('✅ Announcement posted');
       }
 
@@ -81,7 +80,7 @@ const AnnouncementDashboard = () => {
     if (!window.confirm('🗑️ Are you sure you want to delete this announcement?')) return;
 
     try {
-      await axios.delete(`/api/announcements/${id}`, {
+      await axios.delete(`${API_BASE}/announcements/${id}`, {
         data: { userId: user._id, role: userRole },
       });
       toast.success('🗑️ Announcement deleted');
@@ -115,16 +114,23 @@ const AnnouncementDashboard = () => {
           />
           <button
             type="submit"
-            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition"
           >
             {editingId ? 'Update Announcement ✏️' : 'Send Announcement 🚀'}
           </button>
         </form>
       )}
 
+      {announcements.length === 0 && (
+        <p className="text-gray-500 text-center mb-4">No announcements yet.</p>
+      )}
+
       <div className="space-y-4">
         {announcements.map((a) => (
-          <div key={a._id} className="bg-white shadow-md p-4 rounded-md relative">
+          <div
+            key={a._id}
+            className="bg-white shadow-md p-4 rounded-md overflow-x-auto"
+          >
             <h3 className="text-lg font-bold">📌 {a.title}</h3>
             <p className="text-gray-700">{a.message}</p>
             <p className="text-xs text-gray-500 mt-1">
@@ -132,16 +138,16 @@ const AnnouncementDashboard = () => {
             </p>
 
             {isAuthorized && (
-              <div className="absolute top-2 right-2 flex gap-2">
+              <div className="mt-4 flex gap-2 flex-wrap">
                 <button
                   onClick={() => handleEdit(a)}
-                  className="text-blue-600 hover:underline text-sm"
+                  className="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition"
                 >
                   ✏️ Edit
                 </button>
                 <button
                   onClick={() => handleDelete(a._id)}
-                  className="text-red-600 hover:underline text-sm"
+                  className="px-3 py-1 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200 transition"
                 >
                   🗑️ Delete
                 </button>

@@ -26,7 +26,7 @@ exports.getAnnouncements = async (req, res) => {
   }
 };
 
-// ✅ Update an announcement
+
 exports.updateAnnouncement = async (req, res) => {
   try {
     const { id } = req.params;
@@ -53,7 +53,7 @@ exports.updateAnnouncement = async (req, res) => {
   }
 };
 
-// 🗑️ Delete an announcement
+
 exports.deleteAnnouncement = async (req, res) => {
   try {
     const { id } = req.params;

@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 
 const JWT_SECRET = 'your_jwt_secret'; // You should move this to .env in production
 
-// ✅ Register User
+
 exports.registerUser = async (req, res) => {
   const { name, email, password, phone, location, interests, role, availability } = req.body;
 
@@ -27,7 +27,6 @@ exports.registerUser = async (req, res) => {
 
     const token = jwt.sign({ email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '1d' });
 
-    // ✅ Include _id in response
     res.status(201).json({
       token,
       user: {
