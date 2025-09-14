@@ -8,7 +8,7 @@ const OrganizerLogisticsBoard = ({
   onEditTask,
   volunteers = [],
   onAssignVolunteer,
-  onCreateTask, // make sure this is passed from parent
+  onCreateTask, 
 }) => {
   const [newTask, setNewTask] = useState({ name: '', status: 'Pending' });
 
@@ -21,7 +21,7 @@ const OrganizerLogisticsBoard = ({
 
   return (
     <div className="space-y-6">
-      {/* ✅ Add Logistics Task Section at Top */}
+      
       <div className="bg-white p-4 rounded shadow border">
         <h2 className="text-lg font-semibold mb-2">+ Add Logistics Task</h2>
         <input
@@ -48,7 +48,7 @@ const OrganizerLogisticsBoard = ({
         </button>
       </div>
 
-      {/* ✅ Existing Logistics Items Below */}
+      
       {previewMode && logisticsItems?.length === 0 ? (
         <p className="text-gray-500 text-center">No preview data available.</p>
       ) : !logisticsItems || logisticsItems.length === 0 ? (
@@ -59,7 +59,7 @@ const OrganizerLogisticsBoard = ({
             key={index}
             className="bg-gray-100 p-4 rounded shadow flex flex-col gap-4"
           >
-            {/* Task Info */}
+           
             <div>
               <input
                 type="text"
@@ -81,7 +81,7 @@ const OrganizerLogisticsBoard = ({
               </p>
             </div>
 
-            {/* Status + Controls */}
+           
             <div className="flex flex-wrap gap-2 items-center">
               <span
                 className={`px-3 py-1 rounded-full text-white text-sm ${

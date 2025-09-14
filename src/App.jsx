@@ -1,5 +1,4 @@
-
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { io } from 'socket.io-client';
 import { Toaster } from 'react-hot-toast';
@@ -32,6 +31,14 @@ import VolunteerTaskBoard from './pages/VolunteerTaskBoard';
 
 const socket = io(import.meta.env.VITE_BACKEND_URL);
 
+const ProtectedRoute = ({ children, allowedRoles }) => {
+  const user = JSON.parse(localStorage.getItem('user'));
+  if (!user || !allowedRoles.includes(user.role)) {
+    return <Navigate to="/unauthorized" />;
+  }
+  return children;
+};
+
 function App() {
   useEffect(() => {
     socket.on('connect', () => {
@@ -40,7 +47,6 @@ function App() {
 
     socket.on('newEvent', (eventData) => {
       console.log('📥 New event received:', eventData);
-      
     });
 
     socket.on('disconnect', () => {
@@ -55,42 +61,76 @@ function App() {
   }, []);
 
   return (
-    <Router>
-      <Toaster position="top-right" />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/events" element={<Events socket={socket} />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/admin" element={<AdminDashboard />} />
-        <Route path="/events/:eventId/participants" element={<ParticipantList />} />
-
-        <Route path="/dashboard" element={<Dashboard><DashboardRedirect /></Dashboard>} />
-        <Route path="/user-dashboard" element={<UserDashboard />} />
-        <Route path="/my-events" element={<MyEvents />} />
-        <Route path="/create-event" element={<CreateEvent socket={socket} />} />
-        <Route path="/event-list" element={<Events socket={socket} />} />
-        <Route path="/event/:eventId" element={<EventPage socket={socket} />} />
-        <Route path="/edit-event/:id" element={<EditEventForm />} />
-        <Route path="/event-list" element={<EventList />} />
-        <Route path="/create-event" element={<EventForm />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="*" element={<div className="p-4 text-red-600">Page not found.</div>} />
-        <Route path="/organizer" element={<OrganizerDashboard />} />
-        <Route path="/volunteer" element={<VolunteerCheckIn />} />
-        <Route path="/announcements" element={<AnnouncementBoard  socket={socket}/>} />
-        <Route path="/volunteers" element={<VolunteersPage />} />
-        <Route path="/reports" element={<ReportsPage />} /><Route path="/logistics" element={<SelectEventPage />} />
-        <Route path="/logistics/:eventId" element={<OrganizerLogisticsBoard />} />
-        <Route path="/select-event" element={<SelectEventPage />} />
-        <Route path="/dashboard/organizer" element={<OrganizerDashboard />} />
-
-        <Route path="/manage-event/:eventId" element={<EventManagementPage />} />
-        <Route path="/my-tasks" element={<VolunteerTaskBoard />} />
-        
- 
-      </Routes>
-    </Router>
+    <div className="min-h-screen bg-gray-50 text-gray-800">
+      <div className="max-w-full sm:max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <Router>
+          <Toaster position="top-right" />
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/events" element={<Events socket={socket} />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/admin" element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/events/:eventId/participants" element={<ParticipantList />} />
+            <Route path="/dashboard" element={<Dashboard><DashboardRedirect /></Dashboard>} />
+            <Route path="/user-dashboard" element={<UserDashboard />} />
+            <Route path="/my-events" element={<MyEvents />} />
+            <Route path="/create-event" element={
+              <ProtectedRoute allowedRoles={['organizer', 'admin']}>
+                <CreateEvent socket={socket} />
+              </ProtectedRoute>
+            } />
+            <Route path="/event-list" element={<Events socket={socket} />} />
+            <Route path="/event/:eventId" element={<EventPage socket={socket} />} />
+            <Route path="/edit-event/:id" element={<EditEventForm />} />
+            <Route path="/event-list" element={<EventList />} />
+            <Route path="/create-event" element={<EventForm />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="*" element={<div className="text-center text-red-600 text-lg py-6">Page not found.</div>} />
+            <Route path="/organizer" element={
+              <ProtectedRoute allowedRoles={['organizer', 'admin']}>
+                <OrganizerDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/volunteer" element={
+              <ProtectedRoute allowedRoles={['organizer', 'admin']}>
+                <VolunteerCheckIn />
+              </ProtectedRoute>
+            } />
+            <Route path="/announcements" element={<AnnouncementBoard socket={socket} />} />
+            <Route path="/volunteers" element={<VolunteersPage />} />
+            <Route path="/reports" element={<ReportsPage />} />
+            <Route path="/logistics" element={<SelectEventPage />} />
+            <Route path="/logistics/:eventId" element={
+              <ProtectedRoute allowedRoles={['organizer', 'admin']}>
+                <OrganizerLogisticsBoard />
+              </ProtectedRoute>
+            } />
+            <Route path="/select-event" element={<SelectEventPage />} />
+            <Route path="/dashboard/organizer" element={
+              <ProtectedRoute allowedRoles={['organizer', 'admin']}>
+                <OrganizerDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/manage-event/:eventId" element={
+              <ProtectedRoute allowedRoles={['organizer', 'admin']}>
+                <EventManagementPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/my-tasks" element={
+              <ProtectedRoute allowedRoles={['volunteer']}>
+                <VolunteerTaskBoard />
+              </ProtectedRoute>
+            } />
+            <Route path="/unauthorized" element={<div className="text-center text-red-500 text-lg py-6">Access denied.</div>} />
+          </Routes>
+        </Router>
+      </div>
+    </div>
   );
 }
 

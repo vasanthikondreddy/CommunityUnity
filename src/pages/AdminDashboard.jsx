@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 const AdminDashboard = () => {
   const [volunteers, setVolunteers] = useState([]);
@@ -7,7 +8,8 @@ const AdminDashboard = () => {
   useEffect(() => {
     const fetchVolunteers = async () => {
       try {
-        const response = await axios.get('/api/volunteers');
+        const response = await axios.get(`${API_BASE}/volunteers`);
+
         setVolunteers(response.data);
       } catch (error) {
         console.error('Error fetching volunteers:', error);
@@ -38,12 +40,14 @@ const AdminDashboard = () => {
                 key={vol._id}
                 className={`p-4 rounded-lg shadow-md transition transform hover:scale-[1.02] ${
                   index < 3
-                    ? 'bg-green-100 border-l-4 border-green-600'
+                    ? 'bg-green-100 border-l-4 border-green-600 relative'
                     : 'bg-green-50 border border-green-200'
                 }`}
               >
                 <div className="flex justify-between items-center">
-                  <span className="font-semibold text-green-800">{vol.name}</span>
+                  <span className="font-semibold text-green-800">
+                    {vol.name || 'Unnamed Volunteer'}
+                  </span>
                   <span className="text-xs text-gray-600">
                     {new Date(vol.checkInTime).toLocaleTimeString([], {
                       hour: '2-digit',
@@ -51,6 +55,11 @@ const AdminDashboard = () => {
                     })}
                   </span>
                 </div>
+                {index < 3 && (
+                  <span className="absolute top-2 right-2 bg-green-600 text-white text-xs px-2 py-0.5 rounded-full">
+                    ⭐ Top {index + 1}
+                  </span>
+                )}
               </li>
             ))}
           </ul>
@@ -59,7 +68,7 @@ const AdminDashboard = () => {
         )}
       </section>
 
-      
+     
       <section>
         <h3 className="text-2xl font-semibold text-red-700 mb-3">❌ Not Checked-In</h3>
         <p className="text-sm text-gray-600 mb-4">Total: {notCheckedIn.length}</p>
@@ -70,7 +79,9 @@ const AdminDashboard = () => {
                 key={vol._id}
                 className="bg-red-50 border border-red-200 p-4 rounded-lg shadow-sm transition hover:shadow-md"
               >
-                <span className="font-semibold text-red-800">{vol.name}</span>
+                <span className="font-semibold text-red-800">
+                  {vol.name || 'Unnamed Volunteer'}
+                </span>
               </li>
             ))}
           </ul>
