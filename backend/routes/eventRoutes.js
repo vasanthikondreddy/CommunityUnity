@@ -17,8 +17,6 @@ const {
 const router = express.Router();
 
 router.post('/', upload.single('file'), createEvent);
-
-
 router.get('/', async (req, res) => {
   try {
     const events = await Event.find().sort({ date: 1 });
@@ -28,14 +26,7 @@ router.get('/', async (req, res) => {
     res.status(500).json({ success: false, error: 'Failed to fetch events' });
   }
 });
-
-
-
-
-
 router.get('/user/:userId', getEventsByUser);
-
-
 router.get('/created/:userId', async (req, res) => {
   const { userId } = req.params;
 
@@ -55,14 +46,11 @@ router.get('/created/:userId', async (req, res) => {
     res.status(500).json({ success: false, error: 'Failed to fetch created events' });
   }
 });
-
 router.get('/:eventId/participants', async (req, res) => {
   const { eventId } = req.params;
-
   if (!mongoose.Types.ObjectId.isValid(eventId)) {
     return res.status(400).json({ success: false, error: 'Invalid event ID format' });
   }
-
   try {
     const signups = await EventSignup.find({ eventId }).populate('userId', 'name email');
 
@@ -78,11 +66,9 @@ router.get('/:eventId/participants', async (req, res) => {
 });
 router.get('/:eventId', async (req, res) => {
   const { eventId } = req.params;
-
   if (!mongoose.Types.ObjectId.isValid(eventId)) {
     return res.status(400).json({ success: false, error: 'Invalid event ID format' });
   }
-
   try {
     const event = await Event.findById(eventId).populate('organizer', '_id name email');
 
@@ -96,8 +82,6 @@ router.get('/:eventId', async (req, res) => {
     res.status(500).json({ success: false, error: 'Failed to fetch event' });
   }
 });
-
-
 router.get('/:eventId/files', async (req, res) => {
   try {
     const files = await EventFile.find({ eventId: req.params.eventId });
@@ -116,12 +100,9 @@ router.post('/events/:eventId/upload', upload.single('file'), async (req, res) =
     file_name: originalname,
     file_url: `/uploads/${path}`, 
   });
-
   await fileRecord.save();
   res.json({ success: true, data: fileRecord });
 });
-
-
 router.get('/volunteers', async (req, res) => {
   try {
     const volunteers = await User.find({ role: 'volunteer' });
@@ -130,15 +111,11 @@ router.get('/volunteers', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch volunteers' });
   }
 });
-
-
 router.patch('/volunteers/:id/checkin', async (req, res) => {
   const { id } = req.params;
-
   if (!mongoose.Types.ObjectId.isValid(id)) {
     return res.status(400).json({ error: 'Invalid volunteer ID format' });
   }
-
   try {
     const updated = await User.findByIdAndUpdate(
       id,
@@ -149,15 +126,12 @@ router.patch('/volunteers/:id/checkin', async (req, res) => {
     if (!updated) {
       return res.status(404).json({ error: 'Volunteer not found' });
     }
-
     res.status(200).json(updated);
   } catch (err) {
     console.error('Check-in error:', err);
     res.status(500).json({ error: 'Failed to check in volunteer' });
   }
 });
-
-
 router.put('/:eventId', async (req, res) => {
   const { eventId } = req.params;
   const updates = req.body;
@@ -228,10 +202,6 @@ router.delete('/:eventId', async (req, res) => {
   }
 });
 
-
-
-
-
 router.post('/:eventId/signups', async (req, res) => {
   const { eventId } = req.params;
   const { userId } = req.body;
@@ -251,9 +221,6 @@ router.post('/:eventId/signups', async (req, res) => {
     res.status(500).json({ success: false, error: 'Signup failed' });
   }
 });
-
-
-
 router.get('/:eventId/logistics', async (req, res) => {
   try {
     const { eventId } = req.params;
@@ -320,7 +287,7 @@ router.put('/:eventId/logistics/:taskId', async (req, res) => {
   }
 });
 
-// Delete a logistics task
+
 router.delete('/:eventId/logistics/:taskId', async (req, res) => {
   const { eventId, taskId } = req.params;
 
