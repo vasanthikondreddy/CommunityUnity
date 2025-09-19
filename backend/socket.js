@@ -4,11 +4,11 @@ module.exports = {
   init: (server) => {
     io = require("socket.io")(server, {
       cors: {
-        origin: "http://localhost:5173", 
+        origin: ["http://localhost:5173", "http://13.220.86.201"],
         methods: ["GET", "POST"],
-        credentials: true,              
+        credentials: true,
       },
-      transports: ["websocket"],        
+      transports: ["websocket"],
     });
 
     io.on("connection", (socket) => {

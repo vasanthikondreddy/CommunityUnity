@@ -1,13 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
-import io from 'socket.io-client';
+
 import { Link, useNavigate } from 'react-router-dom';
+import { socket } from "../utils/socket";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
-const socket = io(API_BASE, {
-  transports: ['websocket'],
-  withCredentials: true,
-});
 
 function CreateEvent() {
   const navigate = useNavigate();

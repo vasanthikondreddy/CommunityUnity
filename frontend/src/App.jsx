@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useEffect } from 'react';
-import { io } from 'socket.io-client';
+
 import { Toaster } from 'react-hot-toast';
 
 import Home from './pages/Home';
@@ -29,8 +29,7 @@ import OrganizerLogisticsBoard from './pages/OrganizerLogisticsBoard';
 import EventManagementPage from './pages/EventManagementPage';
 import VolunteerTaskBoard from './pages/VolunteerTaskBoard';
 
-const socket = io(import.meta.env.VITE_BACKEND_URL);
-
+import { socket } from "./utils/socket";
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const user = JSON.parse(localStorage.getItem('user'));
   if (!user || !allowedRoles.includes(user.role)) {

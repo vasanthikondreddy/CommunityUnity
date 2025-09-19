@@ -3,19 +3,19 @@ const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const cors = require("cors");
 const { createServer } = require("http");
-const { init } = require("./socket"); // ✅ import socket initializer
+const { init } = require("./socket"); 
 
 dotenv.config();
 
 const app = express();
 const server = createServer(app);
-const io = init(server); // ✅ initialize socket.io properly
+const io = init(server); 
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(cors({
-  origin: "http://localhost:5173",
+  origin: ["http://13.220.86.201:38819","http://13.220.86.201:5174","http://13.220.86.201"],
   credentials: true,
 }));
 
@@ -25,12 +25,20 @@ const authRoutes = require("./routes/authRoutes");
 const eventRoutes = require("./routes/eventRoutes");
 const volunteerRoutes = require("./routes/volunteerRoutes");
 const announcementRoutes = require("./routes/announcementRoutes");
-const taskRoutes = require("./routes/Tasks");
+const reportRoutes = require('./routes/reportRoutes');
+const taskRoutes = require("./routes/tasks");
 app.use("/api/auth", authRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/volunteers", volunteerRoutes);
 app.use("/api/announcements", announcementRoutes);
 app.use("/api/tasks", taskRoutes);
+
+app.use('/api', reportRoutes);
+
+app.get("/api", (req, res) => {
+  res.send("✅ API is running and ready!");
+});
+
 io.on("connection", (socket) => {
   console.log("🟢 Socket connected:", socket.id);
 
@@ -48,7 +56,7 @@ mongoose
   .then(() => {
     console.log("✅ Connected to MongoDB");
     const PORT = process.env.PORT || 5000;
-    server.listen(PORT, () => {
+    server.listen(PORT,  '0.0.0.0', () => {
       console.log(`🚀 Server running on port ${PORT}`);
     });
   })
