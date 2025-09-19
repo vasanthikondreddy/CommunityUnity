@@ -14,11 +14,26 @@ A real-time web application for managing community events, volunteers, and annou
 - **Database:** MongoDB Atlas
 - **Real-Time:** Socket.IO
 - **Deployment:** AWS
-              **FRONTEND:**
-              **BACKEND:**
+              **FRONTEND:**http://13.220.86.201:5174/**
+              **BACKEND:**http://13.220.86.201:5000/api**
     
 ## Setup Instructions
 1. **Clone the repository**
    git clone https://github.com/vasanthikondreddy/CommunityUnity.git
    cd CommunityUnity
-   npm install
+     cd backend
+       npm install
+       npm start
+   cd frontend
+     npm install
+     npm run dev
+
+
+     ## To run project
+
+ **http://13.220.86.201:5174/**
+ ----------------------------------
+   
+     
+   
+       
