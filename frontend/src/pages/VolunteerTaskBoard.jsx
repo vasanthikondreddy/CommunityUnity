@@ -25,21 +25,26 @@ const VolunteerTaskBoard = () => {
     }
   }, []);
 
-  const fetchTasks = async () => {
-    try {
-      const res = await axios.get(`${API_BASE}/tasks`);
-      const assigned = res.data.filter((t) => {
-        const assignedId =
-          typeof t.assignedTo === 'string' ? t.assignedTo : t.assignedTo?._id;
-        return assignedId === user._id;
-      });
-      setTasks(assigned);
-    } catch (err) {
-      toast.error('❌ Failed to load tasks');
-    } finally {
-      setLoading(false);
-    }
-  };
+ 
+const fetchTasks = async () => {
+  try {
+    const res = await axios.get(`${API_BASE}/tasks`);
+    const assigned = res.data.filter((t) => {
+      const assignedId =
+        typeof t.assignedTo === 'string' ? t.assignedTo : t.assignedTo?._id;
+
+      const isAssigned = assignedId === user._id;
+      const isVisibleToRole = Array.isArray(t.visibleTo) && t.visibleTo.includes(user.role);
+
+      return isAssigned || isVisibleToRole;
+    });
+    setTasks(assigned);
+  } catch (err) {
+    toast.error('❌ Failed to load tasks');
+  } finally {
+    setLoading(false);
+  }
+};
 
   const markAsCompleted = async (taskId) => {
     try {

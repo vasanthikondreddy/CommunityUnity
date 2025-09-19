@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useEffect } from 'react';
+import { Link } from 'react-router-dom';
 
 import { Toaster } from 'react-hot-toast';
 
@@ -37,6 +38,8 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   }
   return children;
 };
+const footerTextStyle = { marginTop: '1rem', fontSize: '1rem' };
+const linkStyle = { color: '#3b82f6', textDecoration: 'underline' };
 
 function App() {
   useEffect(() => {
@@ -105,9 +108,9 @@ function App() {
             <Route path="/reports" element={<ReportsPage />} />
             <Route path="/logistics" element={<SelectEventPage />} />
             <Route path="/logistics/:eventId" element={
-              <ProtectedRoute allowedRoles={['organizer', 'admin']}>
+         
                 <OrganizerLogisticsBoard />
-              </ProtectedRoute>
+              
             } />
             <Route path="/select-event" element={<SelectEventPage />} />
             <Route path="/dashboard/organizer" element={
@@ -125,7 +128,16 @@ function App() {
                 <VolunteerTaskBoard />
               </ProtectedRoute>
             } />
-            <Route path="/unauthorized" element={<div className="text-center text-red-500 text-lg py-6">Access denied.</div>} />
+<Route path="/unauthorized" element={
+  <div className="text-center text-red-500 text-lg py-6">
+    <p>Access denied...</p>
+    <p style={footerTextStyle}>
+      Just browsing?{' '}
+      <Link to="/" style={linkStyle}>Go to Home</Link>
+    </p>
+  </div>
+} />
+
           </Routes>
         </Router>
       </div>
