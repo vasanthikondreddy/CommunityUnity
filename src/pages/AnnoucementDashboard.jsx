@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import io from 'socket.io-client';
+
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-const socket = io(import.meta.env.VITE_BACKEND_URL);
+import { socket } from "../utils/socket";
+
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 const AnnouncementDashboard = () => {

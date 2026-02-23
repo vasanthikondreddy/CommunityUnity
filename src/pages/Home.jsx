@@ -14,7 +14,7 @@ export default function Home() {
         const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/events`);
         if (res.data.success && Array.isArray(res.data.data)) {
           if (res.data.data.length > 0) {
-            setFeaturedEvent(res.data.data[0]); // pick first event
+            setFeaturedEvent(res.data.data[0]); 
           } else {
             console.warn("No events found");
           }
@@ -66,7 +66,7 @@ export default function Home() {
             </Link>
           </div>
 
-          {/* 🚀 Dashboards Section */}
+          
           <section className="mt-20 text-center">
             <h2 className="text-3xl font-bold text-gray-800 mb-4">🚀 Explore Dashboards</h2>
             <p className="text-gray-600 mb-6">Choose your role to access the right tools:</p>
@@ -86,7 +86,6 @@ export default function Home() {
             </div>
           </section>
 
-          {/* 🚚 Logistics Coordination Section */}
           <section className="mt-20 text-center">
             <h2 className="text-3xl font-bold text-gray-800 mb-4 flex items-center justify-center gap-2">
               🚚 Logistics Coordination
@@ -118,7 +117,6 @@ export default function Home() {
             </div>
           </section>
 
-          {/* 🌟 Platform Highlights */}
           <section className="mt-12">
             <h2 className="text-2xl font-bold text-gray-800 mb-6">Platform Highlights</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

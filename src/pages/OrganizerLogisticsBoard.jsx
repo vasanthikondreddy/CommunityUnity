@@ -8,20 +8,27 @@ const OrganizerLogisticsBoard = ({
   onEditTask,
   volunteers = [],
   onAssignVolunteer,
-  onCreateTask, 
+  onCreateTask,
+  currentEventId,
+  user
 }) => {
   const [newTask, setNewTask] = useState({ name: '', status: 'Pending' });
 
   const handleCreate = () => {
     if (newTask.name.trim()) {
-      onCreateTask?.(newTask);
+      const enrichedTask = {
+        ...newTask,
+        visibleTo: ['volunteer'],
+        eventId: currentEventId,
+        createdBy: user._id
+      };
+      onCreateTask?.(enrichedTask);
       setNewTask({ name: '', status: 'Pending' });
     }
   };
 
   return (
     <div className="space-y-6">
-      
       <div className="bg-white p-4 rounded shadow border">
         <h2 className="text-lg font-semibold mb-2">+ Add Logistics Task</h2>
         <input
@@ -48,18 +55,16 @@ const OrganizerLogisticsBoard = ({
         </button>
       </div>
 
-      
       {previewMode && logisticsItems?.length === 0 ? (
         <p className="text-gray-500 text-center">No preview data available.</p>
       ) : !logisticsItems || logisticsItems.length === 0 ? (
         <p className="text-gray-500 text-center">Loading logistics...</p>
       ) : (
-        logisticsItems.map((item, index) => (
+        logisticsItems.map((item) => (
           <div
-            key={index}
+            key={item._id}
             className="bg-gray-100 p-4 rounded shadow flex flex-col gap-4"
           >
-           
             <div>
               <input
                 type="text"
@@ -81,7 +86,6 @@ const OrganizerLogisticsBoard = ({
               </p>
             </div>
 
-           
             <div className="flex flex-wrap gap-2 items-center">
               <span
                 className={`px-3 py-1 rounded-full text-white text-sm ${

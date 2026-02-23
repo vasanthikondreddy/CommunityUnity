@@ -28,7 +28,7 @@ const EventList = ({ events, onDelete }) => {
         </div>
       )}
 
-      {/* ✅ Participants List for First Event */}
+
       {safeEvents.length > 0 && (
         <div className="mt-10">
           <h2 className="text-xl font-semibold mb-4 text-blue-800">

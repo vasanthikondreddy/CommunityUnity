@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import io from 'socket.io-client';
+
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Navigate } from 'react-router-dom';
+import { socket } from "../utils/socket";
 
-const socket = io(import.meta.env.VITE_BACKEND_URL);
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 const VolunteerTaskBoard = () => {
@@ -25,21 +25,26 @@ const VolunteerTaskBoard = () => {
     }
   }, []);
 
-  const fetchTasks = async () => {
-    try {
-      const res = await axios.get(`${API_BASE}/tasks`);
-      const assigned = res.data.filter((t) => {
-        const assignedId =
-          typeof t.assignedTo === 'string' ? t.assignedTo : t.assignedTo?._id;
-        return assignedId === user._id;
-      });
-      setTasks(assigned);
-    } catch (err) {
-      toast.error('❌ Failed to load tasks');
-    } finally {
-      setLoading(false);
-    }
-  };
+ 
+const fetchTasks = async () => {
+  try {
+    const res = await axios.get(`${API_BASE}/tasks`);
+    const assigned = res.data.filter((t) => {
+      const assignedId =
+        typeof t.assignedTo === 'string' ? t.assignedTo : t.assignedTo?._id;
+
+      const isAssigned = assignedId === user._id;
+      const isVisibleToRole = Array.isArray(t.visibleTo) && t.visibleTo.includes(user.role);
+
+      return isAssigned || isVisibleToRole;
+    });
+    setTasks(assigned);
+  } catch (err) {
+    toast.error('❌ Failed to load tasks');
+  } finally {
+    setLoading(false);
+  }
+};
 
   const markAsCompleted = async (taskId) => {
     try {
