@@ -166,7 +166,7 @@ useEffect(() => {
   );
 }
 
-// 🎨 Styling
+
 const containerStyle = {
   maxWidth: '600px',
   margin: '3rem auto',

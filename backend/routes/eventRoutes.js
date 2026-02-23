@@ -368,7 +368,7 @@ router.put('/:eventId/logistics/:taskId/assign', async (req, res) => {
       return res.status(404).json({ error: 'Logistics task not found' });
     }
 
-    // Sync to Task model
+    
     const existingTask = await Task.findOne({ eventId, title: updated.name });
     if (!existingTask) {
       await new Task({
